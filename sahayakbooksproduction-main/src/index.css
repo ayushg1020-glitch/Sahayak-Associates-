@@ -150,4 +150,31 @@
   font-family: var(--font-corporate);
 }
 
+/* Admin Horizontal Navigation Tabs Custom Scrollbar */
+.admin-nav-tabs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #C5A059 #F3ECE1;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-nav-tabs-scroll::-webkit-scrollbar {
+  height: 5px;
+}
+
+.admin-nav-tabs-scroll::-webkit-scrollbar-track {
+  background: #F3ECE1;
+  border-radius: 9999px;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.admin-nav-tabs-scroll::-webkit-scrollbar-thumb {
+  background: #C5A059;
+  border-radius: 9999px;
+}
+
+.admin-nav-tabs-scroll::-webkit-scrollbar-thumb:hover {
+  background: #0B192C;
+}
+
 

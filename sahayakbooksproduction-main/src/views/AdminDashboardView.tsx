@@ -57,6 +57,8 @@ import {
   Award,
   Clock,
   ChevronRight,
+  ChevronLeft,
+  ChevronsUpDown,
   RefreshCw,
   Camera,
   Cloud,
@@ -527,6 +529,143 @@ export const AdminDashboardView: React.FC = () => {
   const pendingOrders = useMemo(() => orders.filter((o) => o.orderStatus === 'Processing' || o.orderStatus === 'Order Confirmed'), [orders]);
   const pendingReviews = useMemo(() => reviews.filter((r) => r.status === 'Pending' || (!r.approved && r.status !== 'Rejected')), [reviews]);
   const newLeadsCount = useMemo(() => (leads || []).filter((l) => l.status === 'new').length, [leads]);
+
+  // Navigation Tabs Scrolling & Quick Jump State
+  const navTabsRef = useRef<HTMLDivElement>(null);
+  const quickNavRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isQuickNavOpen, setIsQuickNavOpen] = useState(false);
+  const [quickNavSearch, setQuickNavSearch] = useState('');
+  const isDraggingTabsRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
+  const dragDistanceRef = useRef(0);
+
+  const updateScrollButtons = () => {
+    if (!navTabsRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = navTabsRef.current;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6);
+  };
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (!navTabsRef.current) return;
+    const distance = 340;
+    navTabsRef.current.scrollBy({
+      left: direction === 'left' ? -distance : distance,
+      behavior: 'smooth',
+    });
+    setTimeout(updateScrollButtons, 350);
+  };
+
+  const handleTabsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!navTabsRef.current) return;
+    isDraggingTabsRef.current = true;
+    dragStartXRef.current = e.pageX;
+    dragScrollLeftRef.current = navTabsRef.current.scrollLeft;
+    dragDistanceRef.current = 0;
+  };
+
+  const handleTabsMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingTabsRef.current || !navTabsRef.current) return;
+    const dx = e.pageX - dragStartXRef.current;
+    dragDistanceRef.current = Math.abs(dx);
+    navTabsRef.current.scrollLeft = dragScrollLeftRef.current - dx;
+    updateScrollButtons();
+  };
+
+  const handleTabsMouseUpOrLeave = () => {
+    isDraggingTabsRef.current = false;
+  };
+
+  // Synchronize Tab Horizontal Scroll with Wheel & Window Resize
+  useEffect(() => {
+    const el = navTabsRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // If user scrolls mouse wheel over the tab container, scroll horizontally
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        updateScrollButtons();
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('scroll', updateScrollButtons, { passive: true });
+    window.addEventListener('resize', updateScrollButtons);
+
+    // Initial check after mount/layout
+    const initTimer = setTimeout(updateScrollButtons, 200);
+
+    return () => {
+      clearTimeout(initTimer);
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, []);
+
+  // Smoothly center active tab when activeTab or route changes
+  useEffect(() => {
+    if (!navTabsRef.current) return;
+    const activeBtn = navTabsRef.current.querySelector<HTMLButtonElement>(`[data-tab-id="${activeTab}"]`);
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+    const timer = setTimeout(updateScrollButtons, 350);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
+
+  // Close Quick Jump popover on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (quickNavRef.current && !quickNavRef.current.contains(e.target as Node)) {
+        setIsQuickNavOpen(false);
+      }
+    };
+    if (isQuickNavOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isQuickNavOpen]);
+
+  const ADMIN_TABS = useMemo(() => [
+    { id: 'overview', label: 'Executive KPIs', icon: LayoutDashboard, category: 'Operations & Telemetry' },
+    { id: 'books', label: 'Book Catalog CMS', icon: BookPlus, badge: books.length, category: 'Publishing & Catalog' },
+    {
+      id: 'google-shopping',
+      label: 'Google Shopping',
+      icon: ShoppingBag,
+      badge: books.filter((b) => b.googleEnabled !== false && !b.googleExcluded).length,
+      category: 'Publishing & Catalog',
+    },
+    { id: 'authors', label: 'Authors Roster', icon: Users, badge: authors.length, category: 'Publishing & Catalog' },
+    { id: 'orders', label: 'Order Consignments', icon: ShoppingBag, badge: orders.length, category: 'Operations & Telemetry' },
+    { id: 'leads', label: 'Leads & Inquiries', icon: Mail, badge: newLeadsCount > 0 ? newLeadsCount : undefined, category: 'Operations & Telemetry' },
+    { id: 'reviews', label: 'Review Moderation', icon: Star, badge: pendingReviews.length > 0 ? pendingReviews.length : undefined, category: 'Operations & Telemetry' },
+    { id: 'media', label: 'Media Assets Library', icon: ImageIcon, badge: mediaItems?.length, category: 'Media & Website Content' },
+    { id: 'site-images', label: 'Website Images', icon: Camera, badge: '7 Core', category: 'Media & Website Content' },
+    { id: 'storage', label: 'Cloudflare R2 Storage', icon: Cloud, category: 'Media & Website Content' },
+    { id: 'content', label: 'Copy & Content CMS', icon: Type, category: 'Media & Website Content' },
+    { id: 'contact', label: 'Contact & Support', icon: Phone, category: 'Platform & Governance' },
+    { id: 'brand', label: 'Branding & Identity', icon: Sliders, category: 'Platform & Governance' },
+    { id: 'sections', label: 'Homepage Layout', icon: Layers, category: 'Platform & Governance' },
+    { id: 'coupons', label: 'Coupons & Promos', icon: Tag, badge: coupons.length, category: 'Publishing & Catalog' },
+    { id: 'users', label: 'Staff & Roles (RBAC)', icon: Users, badge: allUsers?.length, category: 'Platform & Governance' },
+    { id: 'analytics', label: 'Telemetry & Clicks', icon: BarChart3, category: 'Operations & Telemetry' },
+    { id: 'audit', label: 'Audit Activity Logs', icon: History, category: 'Platform & Governance' },
+  ], [books, authors, orders, newLeadsCount, pendingReviews, mediaItems, coupons, allUsers]);
+
+  const filteredQuickTabs = useMemo(() => {
+    if (!quickNavSearch.trim()) return ADMIN_TABS;
+    const q = quickNavSearch.toLowerCase();
+    return ADMIN_TABS.filter((t) => t.label.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || t.category.toLowerCase().includes(q));
+  }, [ADMIN_TABS, quickNavSearch]);
 
   // Handle Admin Login
   const handleAdminLoginSubmit = async (e: React.FormEvent) => {
@@ -1144,64 +1283,222 @@ export const AdminDashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Admin Horizontal Nav Tabs */}
-      <div className="flex overflow-x-auto gap-2 p-1.5 bg-white rounded-2xl border border-stone-200 shadow-sm scrollbar-none">
-        {[
-          { id: 'overview', label: 'Executive KPIs', icon: LayoutDashboard },
-          { id: 'books', label: 'Book Catalog CMS', icon: BookPlus, badge: books.length },
-          {
-            id: 'google-shopping',
-            label: 'Google Shopping',
-            icon: ShoppingBag,
-            badge: books.filter((b) => b.googleEnabled !== false && !b.googleExcluded).length,
-          },
-          { id: 'authors', label: 'Authors Roster', icon: Users, badge: authors.length },
-          { id: 'orders', label: 'Order Consignments', icon: ShoppingBag, badge: orders.length },
-          { id: 'leads', label: 'Leads & Inquiries', icon: Mail, badge: newLeadsCount > 0 ? newLeadsCount : undefined },
-          { id: 'reviews', label: 'Review Moderation', icon: Star, badge: pendingReviews.length > 0 ? pendingReviews.length : undefined },
-          { id: 'media', label: 'Media Assets Library', icon: ImageIcon, badge: mediaItems?.length },
-          { id: 'site-images', label: 'Website Images', icon: Camera, badge: '7 Core' },
-          { id: 'storage', label: 'Cloudflare R2 Storage', icon: Cloud },
-          { id: 'content', label: 'Copy & Content CMS', icon: Type },
-          { id: 'contact', label: 'Contact & Support', icon: Phone },
-          { id: 'brand', label: 'Branding & Identity', icon: Sliders },
-          { id: 'sections', label: 'Homepage Layout', icon: Layers },
-          { id: 'coupons', label: 'Coupons & Promos', icon: Tag, badge: coupons.length },
-          { id: 'users', label: 'Staff & Roles (RBAC)', icon: Users, badge: allUsers?.length },
-          { id: 'analytics', label: 'Telemetry & Clicks', icon: BarChart3 },
-          { id: 'audit', label: 'Audit Activity Logs', icon: History },
-        ].map((tab) => {
-          const IconC = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                const targetPath = tab.id === 'overview' ? '/admin' : `/admin/${tab.id}`;
-                navigate(targetPath);
-              }}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-[#0B192C] text-[#FAF7F2] shadow-sm'
-                  : 'text-stone-700 hover:bg-stone-100'
-              }`}
-            >
-              <IconC className={`w-4 h-4 ${isActive ? 'text-[#C5A059]' : 'text-stone-500'}`} />
-              <span>{tab.label}</span>
-              {tab.badge !== undefined && (
-                <span
-                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+      {/* Admin Horizontal Nav Bar with Controls & Quick Jump */}
+      <div className="relative flex items-center bg-white rounded-2xl border border-stone-200 shadow-sm p-1.5 gap-1.5">
+        {/* Left Scroll Navigation Button */}
+        <button
+          type="button"
+          onClick={() => scrollTabs('left')}
+          disabled={!canScrollLeft}
+          title="Scroll tabs left (or use mouse wheel)"
+          aria-label="Scroll left"
+          className={`relative z-20 w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center transition-all ${
+            canScrollLeft
+              ? 'bg-[#0B192C] text-[#FAF7F2] hover:bg-[#152A4A] cursor-pointer shadow-sm hover:scale-105 active:scale-95'
+              : 'bg-stone-100 text-stone-300 opacity-40 cursor-not-allowed'
+          }`}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        {/* Scrollable Tabs Viewport with Fade Edges */}
+        <div className="relative flex-1 min-w-0 overflow-hidden">
+          {/* Subtle Left Fade Gradient */}
+          {canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10" />
+          )}
+
+          {/* Scrollable Track */}
+          <div
+            ref={navTabsRef}
+            onMouseDown={handleTabsMouseDown}
+            onMouseMove={handleTabsMouseMove}
+            onMouseUp={handleTabsMouseUpOrLeave}
+            onMouseLeave={handleTabsMouseUpOrLeave}
+            className="flex overflow-x-auto gap-2 py-1 px-1 admin-nav-tabs-scroll select-none cursor-grab active:cursor-grabbing"
+          >
+            {ADMIN_TABS.map((tab) => {
+              const IconC = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  data-tab-id={tab.id}
+                  onClick={(e) => {
+                    if (dragDistanceRef.current > 6) {
+                      e.preventDefault();
+                      return;
+                    }
+                    const targetPath = tab.id === 'overview' ? '/admin' : `/admin/${tab.id}`;
+                    navigate(targetPath);
+                  }}
+                  className={`px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 transition-all cursor-pointer flex-shrink-0 ${
                     isActive
-                      ? 'bg-[#C5A059] text-[#0B192C] font-bold'
-                      : 'bg-stone-200 text-stone-700'
+                      ? 'bg-[#0B192C] text-[#FAF7F2] shadow-sm ring-1 ring-[#C5A059]/40'
+                      : 'text-stone-700 hover:bg-stone-100 hover:text-[#0B192C]'
                   }`}
                 >
-                  {tab.badge}
+                  <IconC className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#C5A059]' : 'text-stone-500'}`} />
+                  <span>{tab.label}</span>
+                  {tab.badge !== undefined && (
+                    <span
+                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                        isActive
+                          ? 'bg-[#C5A059] text-[#0B192C] font-bold'
+                          : 'bg-stone-200 text-stone-700'
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Subtle Right Fade Gradient */}
+          {canScrollRight && (
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10" />
+          )}
+        </div>
+
+        {/* Right Scroll Navigation Button */}
+        <button
+          type="button"
+          onClick={() => scrollTabs('right')}
+          disabled={!canScrollRight}
+          title="Scroll tabs right (or use mouse wheel)"
+          aria-label="Scroll right"
+          className={`relative z-20 w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center transition-all ${
+            canScrollRight
+              ? 'bg-[#0B192C] text-[#FAF7F2] hover:bg-[#152A4A] cursor-pointer shadow-sm hover:scale-105 active:scale-95'
+              : 'bg-stone-100 text-stone-300 opacity-40 cursor-not-allowed'
+          }`}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+        {/* Vertical Separator */}
+        <div className="h-6 w-px bg-stone-200 flex-shrink-0 mx-0.5" />
+
+        {/* Quick Jump / All Tabs Menu Dropdown */}
+        <div className="relative flex-shrink-0" ref={quickNavRef}>
+          <button
+            type="button"
+            onClick={() => setIsQuickNavOpen(!isQuickNavOpen)}
+            title="Browse all 18 sections directly"
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              isQuickNavOpen
+                ? 'bg-[#0B192C] text-[#FAF7F2] shadow-sm'
+                : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200/80 hover:border-stone-300'
+            }`}
+          >
+            <ChevronsUpDown className={`w-3.5 h-3.5 ${isQuickNavOpen ? 'text-[#C5A059]' : 'text-stone-500'}`} />
+            <span className="hidden md:inline font-semibold">All Tabs</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${
+              isQuickNavOpen ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-[#C5A059]/20 text-[#0B192C]'
+            }`}>
+              18
+            </span>
+          </button>
+
+          {/* Quick Jump Dropdown Popover */}
+          {isQuickNavOpen && (
+            <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="p-3 bg-[#0B192C] text-[#FAF7F2] flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-[#FAF7F2]">Jump to Any Admin Panel</h4>
+                  <p className="text-[10px] text-stone-400">18 total operational & editorial modules</p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#C5A059]/30 text-[#C5A059] font-bold">
+                  {ADMIN_TABS.length} Tabs
                 </span>
-              )}
-            </button>
-          );
-        })}
+              </div>
+
+              {/* Quick Filter Search */}
+              <div className="p-2.5 border-b border-stone-100 bg-stone-50/70">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={quickNavSearch}
+                    onChange={(e) => setQuickNavSearch(e.target.value)}
+                    placeholder="Search panel name or keyword..."
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none focus:border-[#C5A059]"
+                    autoFocus
+                  />
+                  {quickNavSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickNavSearch('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-xs cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Tabs List */}
+              <div className="max-h-80 overflow-y-auto p-2 divide-y divide-stone-100">
+                {filteredQuickTabs.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-stone-400">
+                    No panels found matching "{quickNavSearch}"
+                  </div>
+                ) : (
+                  filteredQuickTabs.map((tab) => {
+                    const IconC = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          setIsQuickNavOpen(false);
+                          setQuickNavSearch('');
+                          const targetPath = tab.id === 'overview' ? '/admin' : `/admin/${tab.id}`;
+                          navigate(targetPath);
+                        }}
+                        className={`w-full flex items-center justify-between p-2 rounded-xl text-left text-xs transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-[#0B192C] text-[#FAF7F2]'
+                            : 'hover:bg-stone-100 text-stone-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <IconC className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#C5A059]' : 'text-stone-500'}`} />
+                          <div className="truncate">
+                            <div className="font-semibold truncate">{tab.label}</div>
+                            <div className={`text-[10px] ${isActive ? 'text-stone-300' : 'text-stone-400'}`}>
+                              {tab.category}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                          {tab.badge !== undefined && (
+                            <span
+                              className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                                isActive
+                                  ? 'bg-[#C5A059] text-[#0B192C] font-bold'
+                                  : 'bg-stone-200 text-stone-700'
+                              }`}
+                            >
+                              {tab.badge}
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="text-[#C5A059] text-xs font-bold">●</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Tab Panels Container */}
