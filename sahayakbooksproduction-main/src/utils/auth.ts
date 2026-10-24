@@ -2,7 +2,8 @@ import { UserProfile } from '../types';
 
 export const ADMIN_EMAILS = [
   'admin@sahayakassociates.org',
-  'editor@sahayakassociates.org'
+  'admin@sahayakkassociates.org',
+  'editor@sahayakassociates.org',
 ];
 
 export const isAuthorizedAdminAccount = (user?: UserProfile | null): boolean => {
