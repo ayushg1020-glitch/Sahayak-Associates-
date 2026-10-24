@@ -349,30 +349,48 @@ export const AdminAuthorsSection: React.FC = () => {
       // Upload avatar file if selected
       if (avatarFile) {
         setUploadProgress(25);
-        const uploadedAvatar = await uploadFileToR2(avatarFile, {
-          folder: `authors/${slug}`,
-          altText: editingAuthor.imageAltText || `${cleanName} — Author Avatar`,
-          caption: `${cleanName} official author avatar`,
-          uploadedBy: adminUser?.name || 'Administrator',
-          onProgress: (p) => setUploadProgress(p),
-        });
-        addMediaItem(uploadedAvatar);
-        finalAvatar = uploadedAvatar.publicUrl;
-        finalMediaId = uploadedAvatar.id;
+        try {
+          const uploadedAvatar = await uploadFileToR2(avatarFile, {
+            folder: `authors/${slug}`,
+            altText: editingAuthor.imageAltText || `${cleanName} — Author Avatar`,
+            caption: `${cleanName} official author avatar`,
+            uploadedBy: adminUser?.name || 'Administrator',
+            onProgress: (p) => setUploadProgress(p),
+          });
+          if (uploadedAvatar) {
+            addMediaItem(uploadedAvatar);
+            finalAvatar = uploadedAvatar.publicUrl || uploadedAvatar.url || finalAvatar;
+            finalMediaId = uploadedAvatar.id;
+          }
+        } catch (uploadErr) {
+          console.warn('Avatar upload to R2 encountered issue, using preview/base64 fallback:', uploadErr);
+          if (previewAvatarUrl) {
+            finalAvatar = previewAvatarUrl;
+          }
+        }
       }
 
       // Upload cover file if selected
       if (coverFile) {
         setUploadProgress(60);
-        const uploadedCover = await uploadFileToR2(coverFile, {
-          folder: `authors/${slug}/covers`,
-          altText: `${cleanName} author cover banner`,
-          caption: `${cleanName} profile banner`,
-          uploadedBy: adminUser?.name || 'Administrator',
-          onProgress: (p) => setUploadProgress(p),
-        });
-        addMediaItem(uploadedCover);
-        finalCoverImage = uploadedCover.publicUrl;
+        try {
+          const uploadedCover = await uploadFileToR2(coverFile, {
+            folder: `authors/${slug}/covers`,
+            altText: `${cleanName} author cover banner`,
+            caption: `${cleanName} profile banner`,
+            uploadedBy: adminUser?.name || 'Administrator',
+            onProgress: (p) => setUploadProgress(p),
+          });
+          if (uploadedCover) {
+            addMediaItem(uploadedCover);
+            finalCoverImage = uploadedCover.publicUrl || uploadedCover.url || finalCoverImage;
+          }
+        } catch (uploadErr) {
+          console.warn('Cover upload to R2 encountered issue, using preview/base64 fallback:', uploadErr);
+          if (previewCoverUrl) {
+            finalCoverImage = previewCoverUrl;
+          }
+        }
       }
 
       const authorId = editingAuthor.id || `author-${Date.now()}`;

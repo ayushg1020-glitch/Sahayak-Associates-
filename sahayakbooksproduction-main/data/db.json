@@ -479,13 +479,25 @@
         "Investment Concepts"
       ],
       "socialLinks": {
-        "twitter": "https://twitter.com/sahayakassoc",
-        "linkedin": "https://linkedin.com/company/sahayakassociates",
         "website": "https://sahayakassociates.org",
+        "linkedin": "https://linkedin.com/company/sahayakassociates",
+        "twitter": "https://twitter.com/sahayakassoc",
+        "facebook": "",
+        "instagram": "",
         "youtube": "https://youtube.com"
       },
       "publishedBookCount": 4,
-      "articlesCount": 48
+      "articlesCount": 48,
+      "status": "published",
+      "isFeatured": true,
+      "imageAltText": "Sandeep Sahni — Author Portrait",
+      "biography": "Sandeep Sahni is an author, financial educator, and founder of Sahayak Associates. He has dedicated his career to empowering readers with practical wisdom on personal finance, money management, character building, and life lessons for young adults.",
+      "seoTitle": "Sandeep Sahni | Author Profile",
+      "metaDescription": "Read biography and research books by Sandeep Sahni.",
+      "email": "",
+      "phone": "",
+      "createdAt": "2026-10-24T10:58:31.867Z",
+      "updatedAt": "2026-10-24T10:58:31.871Z"
     },
     {
       "id": "author-sanjit-paul",
@@ -941,6 +953,24 @@
     }
   },
   "mediaItems": [
+    {
+      "id": "med-1792839489119-3713",
+      "objectKey": "sahayak/authors/20261024-test-60e48e.png",
+      "publicUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "name": "test",
+      "fileName": "20261024-test-60e48e.png",
+      "originalFileName": "test.png",
+      "mimeType": "image/png",
+      "size": "0.1 KB",
+      "fileSizeBytes": 70,
+      "folder": "authors",
+      "storageProvider": "local",
+      "createdAt": "2026-10-24T10:58:09.119Z",
+      "altText": "test",
+      "caption": "",
+      "date": "2026-10-24"
+    },
     {
       "id": "med-1788354804845",
       "createdAt": "2026-09-02T13:12:52.534Z",
@@ -1481,6 +1511,15 @@
   ],
   "auditLogs": [
     {
+      "id": "log-1792839489119",
+      "timestamp": "2026-10-24T10:58:09.119Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "test.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/authors/20261024-test-60e48e.png, Size: 0.1 KB] in folder \"authors\""
+    },
+    {
       "id": "log-1792836065675",
       "timestamp": "2026-10-24T10:01:05.675Z",
       "userName": "Administrative Officer",
@@ -1956,5 +1995,5 @@
       "device": "desktop"
     }
   ],
-  "updatedAt": "2026-10-24T10:01:48.799Z"
+  "updatedAt": "2026-10-24T10:58:31.871Z"
 }

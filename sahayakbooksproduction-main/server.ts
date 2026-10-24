@@ -9,6 +9,7 @@ import {
   uploadBufferToR2,
   deleteObjectFromR2,
   createPresignedUploadUrl,
+  ALLOWED_MIME_TYPES,
 } from './server/r2';
 import { getDatabase, saveDatabase } from './server/db';
 import {
@@ -1343,9 +1344,9 @@ async function startServer() {
       let detectedMime = mimeType || 'image/jpeg';
 
       if (dataUrl && typeof dataUrl === 'string') {
-        const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
         if (matches && matches.length === 3) {
-          detectedMime = matches[1];
+          detectedMime = matches[1].toLowerCase();
           fileBuffer = Buffer.from(matches[2], 'base64');
         } else {
           // If raw base64 without prefix
@@ -1356,6 +1357,19 @@ async function startServer() {
       } else {
         res.status(400).json({ error: 'Invalid payload format.' });
         return;
+      }
+
+      // Fallback for mime type from extension if needed
+      if (!ALLOWED_MIME_TYPES[detectedMime] && originalFilename) {
+        const ext = originalFilename.split('.').pop()?.toLowerCase();
+        if (ext === 'jpg' || ext === 'jpeg') detectedMime = 'image/jpeg';
+        else if (ext === 'png') detectedMime = 'image/png';
+        else if (ext === 'webp') detectedMime = 'image/webp';
+        else if (ext === 'svg') detectedMime = 'image/svg+xml';
+        else if (ext === 'gif') detectedMime = 'image/gif';
+        else if (ext === 'avif') detectedMime = 'image/avif';
+        else if (ext === 'pdf') detectedMime = 'application/pdf';
+        else detectedMime = 'image/jpeg';
       }
 
       const safeFilename = originalFilename || `asset-${Date.now()}`;
