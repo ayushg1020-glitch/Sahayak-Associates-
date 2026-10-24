@@ -1,0 +1,2 @@
+/api/*  https://sahayakbooks-api.goyalaclasses.workers.dev/api/:splat  200!
+/*      /index.html                                                     200

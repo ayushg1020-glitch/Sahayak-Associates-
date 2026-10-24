@@ -1,0 +1,10 @@
+{
+  "name": "sahayak-associates-site",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "npm --prefix sahayakbooksproduction-main install",
+    "build": "npm --prefix sahayakbooksproduction-main run build:netlify && node -e \"const fs=require('fs'); fs.cpSync('sahayakbooksproduction-main/dist', 'dist', {recursive: true});\"",
+    "build:netlify": "npm --prefix sahayakbooksproduction-main run build:netlify && node -e \"const fs=require('fs'); fs.cpSync('sahayakbooksproduction-main/dist', 'dist', {recursive: true});\""
+  }
+}
