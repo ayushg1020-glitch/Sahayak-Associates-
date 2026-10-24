@@ -1,0 +1,113 @@
+<USER_REQUEST>
+# ANTIGRAVITY MASTER PROMPT
+## Project: Sahayak Associates — Complete Corporate Website Transformation With Integrated Sahayak Books
+
+### YOUR ROLE
+
+Act as a world-class **Senior Full-Stack Architect, Award-Winning UI/UX Designer, Creative Frontend Developer, Animation Engineer, and E-Commerce Systems Specialist**.
+
+You are responsible for transforming the existing Sahayak Books website into a sophisticated, production-ready Sahayak Associates corporate platform.
+
+This is not a basic redesign, theme replacement, or cosmetic improvement.
+
+**This is a complete architectural and visual transformation of the existing website while preserving its working functionality, data, and backend infrastructure.**
+
+The final website must achieve the visual quality of a premium financial services institution, with exceptionally polished UI, elegant animations, outstanding mobile responsiveness, and seamless bookstore integration.
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+The current project is an e-commerce website branded as:
+
+**SAHAYAK BOOKS — Powered by Sahayak Associates**
+
+We want to convert this project into a complete corporate website branded as:
+
+**SAHAYAK ASSOCIATES — Your Personal Family CFO**
+
+The main website must closely recreate the reference Sahayak Associates website shown in the provided screenshots.
+
+The existing bookstore must become a dedicated page and e-commerce section within the corporate website.
+
+### Required outcome
+
+OLD STRUCTURE:
+
+- Sahayak Books Homepage
+- Books
+- Authors
+- About Us
+- Contact
+- Customer Login
+- Shopping Cart
+- Checkout
+- Admin Dashboard
+
+NEW STRUCTURE:
+
+- Sahayak Associates Homepage
+- About Us
+- Our Services
+- Sahayak Gurukul
+- Achievements
+- Careers
+- Sahayak Books
+- Contact Us
+- Login / Client Portal
+- Existing E-Commerce System
+- Existing Admin Dashboard
+
+**The primary brand must be Sahayak Associates, not Sahayak Books.**
+
+Sahayak Books must remain an independent functional section within the same website.
+
+<truncated 28398 bytes>
+k Books has a dedicated page.
+- Book data and images are preserved.
+- Product details work.
+- Cart and wishlist work.
+- Checkout functionality is preserved.
+- Customer login remains functional.
+- Admin access remains functional.
+- The website is responsive.
+- Animations are smooth.
+- No broken images appear.
+- No major layout overflow exists.
+- No dead links are presented as functional.
+- No unsupported financial claims are introduced.
+- Existing database information remains intact.
+- The production build succeeds.
+- Available automated tests pass.
+
+---
+
+# 19. START NOW
+
+Begin by auditing the existing Sahayak Books repository and examining the supplied screenshots.
+
+Create a detailed implementation plan that maps the existing architecture to the new Sahayak Associates corporate experience.
+
+Then begin implementing the redesign in the controlled phases described above.
+
+Prioritize:
+
+**Visual accuracy → Functionality preservation → Responsive quality → Animation polish → Production reliability.**
+
+Do not rush the implementation.
+
+The final result must look like a carefully engineered, premium Sahayak Associates website with Sahayak Books seamlessly integrated as a dedicated online bookstore.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-14T13:24:29+05:30.
+
+The user's current state is as follows:
+Browser State:
+  Page 3CBA61A2AF9153D703AC3F35FB64DB8E (Sahayak Books - Powered by Sahayak Associates) - http://localhost:3000/ [ACTIVE]
+    Viewport: 2560x1305, Page Height: 5383
+  Page B54B38B595401ACFC0375F05E0AD3DC3 () - https://ep2.adtrafficquality.google/sodar/sodar2/255/runner.html
+    Viewport: 0x0, Page Height: 10753
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Sonnet 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

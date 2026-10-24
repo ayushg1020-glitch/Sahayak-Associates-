@@ -1,0 +1,1426 @@
+<USER_REQUEST>
+# ANTIGRAVITY MASTER PROMPT
+## Project: Sahayak Associates — Complete Corporate Website Transformation With Integrated Sahayak Books
+
+### YOUR ROLE
+
+Act as a world-class **Senior Full-Stack Architect, Award-Winning UI/UX Designer, Creative Frontend Developer, Animation Engineer, and E-Commerce Systems Specialist**.
+
+You are responsible for transforming the existing Sahayak Books website into a sophisticated, production-ready Sahayak Associates corporate platform.
+
+This is not a basic redesign, theme replacement, or cosmetic improvement.
+
+**This is a complete architectural and visual transformation of the existing website while preserving its working functionality, data, and backend infrastructure.**
+
+The final website must achieve the visual quality of a premium financial services institution, with exceptionally polished UI, elegant animations, outstanding mobile responsiveness, and seamless bookstore integration.
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+The current project is an e-commerce website branded as:
+
+**SAHAYAK BOOKS — Powered by Sahayak Associates**
+
+We want to convert this project into a complete corporate website branded as:
+
+**SAHAYAK ASSOCIATES — Your Personal Family CFO**
+
+The main website must closely recreate the reference Sahayak Associates website shown in the provided screenshots.
+
+The existing bookstore must become a dedicated page and e-commerce section within the corporate website.
+
+### Required outcome
+
+OLD STRUCTURE:
+
+- Sahayak Books Homepage
+- Books
+- Authors
+- About Us
+- Contact
+- Customer Login
+- Shopping Cart
+- Checkout
+- Admin Dashboard
+
+NEW STRUCTURE:
+
+- Sahayak Associates Homepage
+- About Us
+- Our Services
+- Sahayak Gurukul
+- Achievements
+- Careers
+- Sahayak Books
+- Contact Us
+- Login / Client Portal
+- Existing E-Commerce System
+- Existing Admin Dashboard
+
+**The primary brand must be Sahayak Associates, not Sahayak Books.**
+
+Sahayak Books must remain an independent functional section within the same website.
+
+Do not create two unrelated websites.
+
+---
+
+# 2. MANDATORY FIRST STEP: COMPLETE PROJECT AUDIT
+
+Before changing anything, analyze the entire existing repository.
+
+Inspect:
+
+1. Framework and routing architecture.
+2. Frontend components and styling system.
+3. Backend APIs and server routes.
+4. Database schemas and migrations.
+5. Product and author data models.
+6. Authentication and authorization.
+7. Cart and wishlist logic.
+8. Checkout and payment integration.
+9. Order management.
+10. Administrative dashboard.
+11. Image assets and file storage.
+12. Deployment configuration.
+13. Environment variables.
+14. Existing tests and build configuration.
+15. Current responsive behavior.
+
+Identify all existing features, routes, integrations and dependencies.
+
+Create a written project audit containing:
+
+- Existing architecture
+- Features that must be preserved
+- Missing features
+- Migration risks
+- Reusable components
+- Proposed architecture
+- Implementation phases
+
+### Critical restrictions
+
+DO NOT delete existing working business logic.
+
+DO NOT reset the database.
+
+DO NOT remove existing products, users, orders or authors.
+
+DO NOT replace working payment integrations without authorization.
+
+DO NOT overwrite production environment variables.
+
+DO NOT introduce unnecessary dependencies.
+
+DO NOT expose API keys, secrets or private credentials.
+
+DO NOT begin destructive database migrations.
+
+Create a separate working branch if Git is configured and branch creation is available.
+
+Preserve all existing functions while modernizing the user experience.
+
+---
+
+# 3. DESIGN REFERENCES — HIGHEST PRIORITY
+
+The user has provided two groups of screenshots.
+
+### Reference A: Sahayak Associates
+
+10 screenshots showing the desired corporate website design.
+
+**These screenshots define the target visual identity.**
+
+Study each image individually and in sequence.
+
+Analyze:
+
+- Section order
+- Content hierarchy
+- Header proportions
+- Logo placement
+- Typography
+- Horizontal alignment
+- Background treatments
+- Navigation structure
+- Cards
+- Button geometry
+- Border treatments
+- Shadows
+- Whitespace
+- Content width
+- Section padding
+- Image placement
+- Animation opportunities
+- Responsive layout requirements
+- Footer structure
+
+Use these screenshots as the primary design specification.
+
+### Reference B: Existing Sahayak Books
+
+5 screenshots showing the current bookstore website.
+
+Use these screenshots to identify the existing e-commerce presentation and content.
+
+The new website must adopt Reference A's design language while retaining Reference B's e-commerce capabilities.
+
+### Accuracy requirement
+
+Aim for extremely high visual fidelity to the corporate reference.
+
+The aim is not merely to produce something inspired by the screenshots.
+
+Recreate the overall visual composition, spacing, proportions, color treatments and typography as closely as possible.
+
+Where original assets are available in the repository, use them.
+
+Where assets are missing, identify them explicitly instead of using unrelated images or silently substituting another company's branding.
+
+Do not invent missing client information.
+
+---
+
+# 4. MASTER DESIGN SYSTEM
+
+Create one unified design system for the entire website.
+
+### Color palette
+
+Use these as initial design tokens, then calibrate against the reference screenshots.
+
+**Primary dark navy:**
+`#071526`
+
+**Secondary navy:**
+`#102542`
+
+**Deep navy background:**
+`#050F1E`
+
+**Luxury gold:**
+`#C9A24E`
+
+**Soft gold:**
+`#DEBF6A`
+
+**Ivory background:**
+`#F5F2EA`
+
+**Warm cream:**
+`#ECE6D8`
+
+**Pure white:**
+`#FFFFFF`
+
+**Primary dark text:**
+`#11243B`
+
+**Muted text:**
+`#738094`
+
+These values are starting points, not permission to ignore screenshot color matching.
+
+### Typography
+
+Use a premium editorial type system.
+
+Suggested fonts:
+
+- Headings: Cormorant Garamond, Playfair Display, or another close reference match.
+- Body: Inter or an equivalent modern sans-serif.
+- Section labels: Clean uppercase sans-serif with generous letter spacing.
+
+Typography should communicate authority, discretion, elegance and trust.
+
+Avoid oversized generic startup typography.
+
+Avoid excessive boldness.
+
+Use refined, readable typographic proportions.
+
+### Design principles
+
+- Premium financial advisory identity
+- Understated luxury
+- Strong visual hierarchy
+- Generous negative space
+- High readability
+- Balanced composition
+- Consistent gold accents
+- Elegant thin borders
+- Subtle shadows
+- Restrained microinteractions
+- Visually consistent spacing
+
+### Visual consistency
+
+All pages, including Sahayak Books, must follow the same design system.
+
+Do not allow the bookstore to retain an unrelated visual theme.
+
+---
+
+# 5. GLOBAL HEADER AND NAVIGATION
+
+Recreate the Sahayak Associates reference header.
+
+### Header appearance
+
+- Clean white background.
+- Centered content container.
+- Authentic Sahayak Associates logo on the left.
+- Compact horizontal navigation.
+- Dark navy links.
+- Gold active-link indicator.
+- Premium gold Contact Us button.
+- Subtle hover animations.
+- Sticky behavior during scrolling.
+
+### Required navigation
+
+Home
+
+About Us
+
+Our Services
+
+Sahayak Gurukul
+
+Achievements
+
+Careers
+
+Sahayak Books
+
+Login
+
+Contact Us
+
+The Books page must be clearly accessible without overwhelming the corporate navigation.
+
+### Dropdowns
+
+Sahayak Gurukul may contain:
+
+- Blogs
+- Books / Articles We Are Reading
+- Brochures
+
+The Login dropdown must reflect actual available authentication systems.
+
+Do not fabricate a working client portal.
+
+If a separate portal does not exist, provide only supported links and clearly identify missing functionality.
+
+### Mobile navigation
+
+Build a premium mobile menu with:
+
+- Accessible menu toggle
+- Smooth opening and closing
+- Nested dropdown support
+- Clear active states
+- Proper keyboard behavior
+- Responsive spacing
+- Correct focus management
+
+The navigation must not overflow or overlap content.
+
+---
+
+# 6. HOMEPAGE — RECREATE SECTION BY SECTION
+
+Build the homepage following the Sahayak Associates reference screenshots.
+
+## SECTION 1 — PREMIUM HERO
+
+This is the most important visual section.
+
+### Background
+
+Create a sophisticated full-width dark navy hero.
+
+The reference contains:
+
+- Large wireframe bull illustration
+- Large wireframe bear illustration
+- Financial-market visual elements
+- Subtle animated particles
+- Chart-inspired background imagery
+- Deep navy gradients
+- Elegant lighting
+
+Reproduce this visual direction as closely as practical.
+
+Use authentic artwork if available.
+
+If not available, construct suitable optimized SVG, WebGL or layered visual assets.
+
+Avoid heavy animation libraries unless justified.
+
+### Hero layout
+
+Left area:
+
+Small gold eyebrow:
+
+EST. 2017 — CHANDIGARH, INDIA
+
+Main heading:
+
+**Your Personal Family CFO.**
+
+Highlight CFO in gold.
+
+Supporting description:
+
+"We help families and business owners protect, grow, and pass on wealth — with the discipline of an institution and the care of a partner who treats your balance sheet as our own."
+
+Primary CTA:
+
+Request a Consultation
+
+Secondary CTA:
+
+Explore Our Practice
+
+Right area:
+
+A premium floating card featuring:
+
+THE 3I FRAMEWORK
+
+Insurance — Protection for life, health, and business.
+
+Investment — Goal-based growth, disciplined for the long term.
+
+Inheritance — Estate planning and seamless transfer of legacy.
+
+Assets Under Management:
+
+₹500 Cr+
+
+### Hero animation
+
+Implement:
+
+- Slow particle movement
+- Restrained wireframe motion
+- Gentle chart-line movement
+- Subtle card entrance
+- Staggered heading reveal
+- Elegant CTA hover states
+- Soft gold highlights
+
+Animation must remain smooth and performant.
+
+Use reduced-motion fallbacks.
+
+Do not let visual effects interfere with the readability of the hero.
+
+---
+
+## SECTION 2 — ACHIEVEMENT COUNTERS
+
+Immediately after the hero, create the cream-colored statistics strip.
+
+Four statistics:
+
+**11+**
+Years of Practice
+
+**1,500+**
+Families Served
+
+**98%**
+Client Retention
+
+**₹500 Cr+**
+Assets Under Management
+
+Use premium serif numbers.
+
+Highlight selected numerical elements in gold.
+
+Separate statistics using thin vertical borders.
+
+Add subtle scroll-triggered counting animations.
+
+Keep the final figures accurate and consistent with the reference.
+
+Do not generate alternative or unsupported business statistics.
+
+---
+
+## SECTION 3 — ABOUT US
+
+Background: warm ivory.
+
+Use the reference's elegant two-column layout.
+
+### Left column
+
+Display the authentic Sahayak Associates office photograph.
+
+Add a small floating information badge:
+
+2017 — Founded in Chandigarh
+
+Use controlled shadows and rounded edges.
+
+### Right column
+
+Heading:
+
+About Us
+
+Use the same hierarchy and gold-highlight treatment shown in the reference.
+
+Reproduce the text content from the reference where legible.
+
+Key themes:
+
+- Helping people achieve their full potential
+- Financial independence
+- Long-term wealth creation
+- Personal finance as a means to achieve life goals
+- Ikigai
+- Responsible financial distribution
+
+CTA:
+
+Read Our Story
+
+Do not replace the section with generic finance-company marketing copy.
+
+---
+
+## SECTION 4 — FINANCIAL PHILOSOPHY TICKER
+
+Build a dark navy horizontal moving ticker.
+
+Include the reference's financial principles where legible:
+
+- Client First Always
+- Goal-Based Investment Only
+- Long-Term Orientation
+- Believe in the Power of Compounding
+- Review and Rebalance Regularly
+- Asset Allocation Is Paramount
+- Evaluate Risk
+- Understand Market Risk
+
+Alternate muted text and gold accent text.
+
+Use a seamless marquee implementation.
+
+Respect reduced-motion preferences.
+
+Make sure the text never gets abruptly clipped.
+
+---
+
+## SECTION 5 — HOW WE ADD VALUE
+
+Background: warm cream with subtle natural texture.
+
+Heading:
+
+**How we add value to your financial journey.**
+
+Supporting description:
+
+"From eliminating complexity to guiding long-term financial growth — we partner with you at every step."
+
+Create premium horizontally scrollable cards.
+
+Visible reference cards include:
+
+1. We Reduce Complexity
+2. We Help You Take Action
+3. We Help Increase Your Conviction and Confidence
+4. We Help You Feel Safer
+
+Use gold icons, elegant headings and muted descriptions.
+
+Include carousel arrows and pagination indicators.
+
+Support mouse, touch and keyboard navigation.
+
+Never show horizontally clipped text without an intentional, usable carousel interaction.
+
+---
+
+## SECTION 6 — OUR SERVICES
+
+Background: deep navy.
+
+Heading:
+
+**The Sahayak Product Basket**
+
+Supporting description:
+
+"A comprehensive suite of financial services — from growing your wealth to legacy preservation — built for every stage of your life."
+
+The reference mentions 14 services.
+
+Build the services section as a premium carousel or grid.
+
+Visible reference services include:
+
+- Mutual Funds Distribution
+- Insurance Products Distribution
+- Capital Markets — Direct Equity & Portfolio Management Services
+
+For the complete list of 14 services, inspect the existing repository, supplied materials or other approved reference content.
+
+If the complete list is not available, do not invent additional offerings.
+
+Create scalable, data-driven service components.
+
+Each service card should contain:
+
+- Icon
+- Service heading
+- Short description
+- Learn More link
+
+Include:
+
+View All Services
+
+Explore All Services
+
+Individual service pages should use the same corporate visual identity.
+
+---
+
+## SECTION 7 — WHAT MAKES SAHAYAK DIFFERENT?
+
+Background: warm ivory.
+
+Heading:
+
+**What makes Sahayak different?**
+
+Build a refined two-column feature layout.
+
+Use the six reference concepts:
+
+1. Client-First. Always.
+2. Zero Speculation. Zero Debt. 100% Discipline.
+3. Proven 5-Step Financial Process
+4. Holistic 3i Concept
+5. We Simplify Finance
+6. Global Standards, Local Relationships
+
+Use minimalist gold icons.
+
+Separate the rows with subtle borders.
+
+Preserve the reference's text hierarchy and layout.
+
+At the bottom, create a premium quotation panel:
+
+"We're not just experts. We're your partners in wealth, peace, and purpose."
+
+---
+
+## SECTION 8 — OUR PROCESS
+
+Background: deep navy.
+
+Heading:
+
+OUR PROCESS
+
+Include the 5-stage approach shown in the reference:
+
+**01 — Meet and Understand**
+
+**02 — Analyze**
+
+**03 — Plan and Execute**
+
+**04 — Support**
+
+**05 — Review**
+
+Build an elegant connected horizontal timeline.
+
+Use:
+
+- Gold timeline markers
+- Thin connecting lines
+- Outline icon containers
+- White serif headings
+- Muted descriptions
+- Subtle active-state animations
+
+On mobile, convert the horizontal timeline into a readable vertical timeline.
+
+Do not compress five columns into unreadable mobile cards.
+
+---
+
+## SECTION 9 — WHY SAHAYAK ASSOCIATES?
+
+Use the reference's textured cream background.
+
+Heading:
+
+Why Sahayak Associates?
+
+Feature points:
+
+- Qualified finance professionals
+- Comprehensive, process-driven approach
+- 100% digital platform
+- Complete financial health check-up
+- Goal-oriented financial planning
+- Customised investment strategies
+- Regular reviews and rebalancing
+
+Present them in an elegant two-column layout with compact gold icons.
+
+---
+
+## SECTION 10 — SAHAYAK GURUKUL
+
+Background: cream.
+
+Heading:
+
+**Sahayak Gurukul.**
+
+This is the knowledge center.
+
+Create a two-column introduction with text explaining financial education and knowledge sharing.
+
+Below, display the authentic office-library photograph from the reference if supplied.
+
+Create three navigation cards:
+
+1. Blogs
+2. Books / Articles We Are Reading
+3. Brochures
+
+Each card must lead to an appropriate functioning page.
+
+CTA:
+
+Explore Gurukul
+
+Do not confuse Gurukul educational resources with the e-commerce bookstore.
+
+They may cross-link, but they serve different purposes.
+
+---
+
+## SECTION 11 — FINANCIAL GOAL PLANNING
+
+Background: warm cream.
+
+Heading:
+
+**How can we help you achieve your goals?**
+
+Use the accordion structure from the reference.
+
+Accordion items:
+
+1. Complete Financial Health Check-Up
+2. Customized Investment Services
+3. Goal-Oriented Investing
+4. Risk Assessment & Asset Allocation
+5. 360° Financial Services
+6. Regular Monitoring & Course Correction
+7. Education & Empowerment
+
+Include plus/minus icons and elegant expanding transitions.
+
+Support keyboard interaction and appropriate ARIA attributes.
+
+At the bottom, create the navy quotation banner:
+
+"You dream it. We plan it. Together, we will achieve it."
+
+---
+
+# 7. THE MOST IMPORTANT ADDITION — SAHAYAK BOOKS
+
+Create a dedicated Sahayak Books storefront under the corporate platform.
+
+Suggested route:
+
+`/books`
+
+The bookstore must be accessible from the global navigation.
+
+### Design principle
+
+The books page should feel like a premium publishing division of Sahayak Associates.
+
+It must use:
+
+- Corporate header
+- Corporate footer
+- Navy and cream palette
+- Gold accent colors
+- Premium editorial typography
+- Consistent buttons
+- Consistent cards
+- Consistent animations
+
+Do not retain the existing unrelated bookstore homepage layout.
+
+## BOOKS PAGE HERO
+
+Build an attractive editorial hero.
+
+Small heading:
+
+SAHAYAK BOOKS
+
+Main heading:
+
+**Books That Inform. Ideas That Inspire.**
+
+Description:
+
+"Discover thoughtfully written books from Sahayak Associates designed to educate, guide, and inspire readers."
+
+Use elegantly arranged book-cover images.
+
+Buttons:
+
+Explore Books
+
+View Bestsellers
+
+The overall visual treatment must closely complement the corporate homepage.
+
+## FEATURED BOOKS
+
+Use the existing database and product assets.
+
+Show the existing publications, including:
+
+- Dear Son: Life Lessons from a Father
+- What My MBA Did Not Teach Me About Money
+- Investment Dictionary
+- Heyy 18: What an 18 Year Old Should Know
+
+Use real stored book details rather than generating fictional product information.
+
+Each card should include:
+
+- Authentic book cover
+- Title
+- Author
+- Category
+- Format
+- Current price
+- Original price if applicable
+- Actual discount
+- Rating if verified
+- Stock status
+- Wishlist control
+- Add to Cart button
+
+Do not invent ratings, reviews, discounts or stock data.
+
+## BOOK CATALOG
+
+Create a sophisticated bookstore catalog with:
+
+- Search
+- Category filtering
+- Price filtering
+- Sorting
+- Book format selection where supported
+- Responsive product grid
+- Pagination or controlled loading
+- Empty-state handling
+- Loading states
+
+Use the current product API and database.
+
+## BOOK DETAILS
+
+Create or refine individual book pages.
+
+Each product page should include:
+
+- Book cover gallery
+- Title and author
+- Description
+- Price
+- Available formats
+- Availability
+- Quantity selection
+- Add to Cart
+- Buy Now
+- Wishlist
+- Related publications
+
+Show sample excerpts only if authorized content exists.
+
+## CART AND CHECKOUT
+
+Retain and improve the existing cart and checkout system.
+
+The cart must correctly handle:
+
+- Product variants
+- Quantities
+- Pricing
+- Discounts
+- Shipping
+- Taxes where applicable
+- Order totals
+- Authentication requirements
+
+Preserve the current payment provider.
+
+Do not claim an order has been placed until the backend confirms it.
+
+Never calculate authoritative order totals solely in the browser.
+
+## CUSTOMER ACCOUNT
+
+Preserve:
+
+- Customer login
+- Registration where available
+- Orders
+- Order history
+- Wishlist
+- Saved profile information
+
+Use secure authentication.
+
+Do not disrupt existing sessions unnecessarily.
+
+## AUTHORS
+
+Create a dedicated authors area within the bookstore.
+
+Include existing author records.
+
+Visible reference authors include:
+
+- Sandeep Sahni
+- Sanjit Singh Paul
+
+Display authentic photographs, biographies and related books wherever such data is available.
+
+## BOOKSTORE FOOTER AND POLICY LINKS
+
+Preserve the existing bookstore's important legal and transactional pages:
+
+- Privacy Policy
+- Terms and Conditions
+- Shipping Policy
+- Returns and Refunds
+- Order Tracking
+- Customer Support
+
+These must remain accessible and accurate.
+
+---
+
+# 8. SECONDARY CORPORATE PAGES
+
+Build dedicated pages using the same premium design system.
+
+### About Us
+
+Detailed company introduction, values, history, philosophy and authentic imagery.
+
+### Our Services
+
+Complete service directory and detail pages.
+
+### Sahayak Gurukul
+
+Knowledge hub with blogs, reading resources and brochures.
+
+### Achievements
+
+Verified milestones, recognition, events and company achievements.
+
+### Careers
+
+Career information and available vacancies.
+
+Only create job application submission functionality if supported by an actual backend.
+
+### Contact Us
+
+Premium contact interface with:
+
+- Verified company contact details
+- Working contact form
+- Office location
+- Map integration where configured
+- Clear success and error states
+
+### Important
+
+Do not copy the bookstore's existing contact address into the corporate footer without verifying that it is the correct Sahayak Associates contact.
+
+Keep corporate and bookstore fulfillment information separate where necessary.
+
+---
+
+# 9. GLOBAL FOOTER
+
+Recreate the Sahayak Associates footer shown in Reference A.
+
+Use a full-width deep navy background.
+
+Include:
+
+### Company area
+
+- Authentic Sahayak Associates logo
+- Short company description
+- Relevant distributor registration information
+- Social links
+
+### Services and resources
+
+- Corporate service links
+- Relevant financial resources
+- Approved external links
+
+### Company
+
+- About Us
+- Sahayak Gurukul
+- Achievements
+- Careers
+- Sahayak Books
+
+### Contact
+
+Use verified corporate contact information.
+
+The reference includes contact details for the Chandigarh office.
+
+These should be transcribed accurately and verified before deployment.
+
+### Legal
+
+- FAQs
+- Privacy Policy
+- Terms
+- Investment risk disclosures
+- Applicable financial distribution disclaimers
+
+Preserve required statutory and regulatory language accurately.
+
+Do not modify legal disclosures casually.
+
+### Floating elements
+
+The reference includes a small branded character at the bottom-left and a WhatsApp contact button at the bottom-right.
+
+Recreate these only using available approved branding assets and verified WhatsApp contact details.
+
+The widgets must not obstruct mobile content or checkout controls.
+
+---
+
+# 10. ANIMATIONS AND MICROINTERACTIONS
+
+Use tasteful, premium motion throughout the site.
+
+Recommended:
+
+- Framer Motion / Motion if compatible with the existing framework
+- Native CSS transitions where sufficient
+- Intersection Observer for lightweight reveals
+- Optimized SVG animation for decorative elements
+
+Implement:
+
+- Section fade and rise
+- Staggered card reveals
+- Hover elevation
+- Underline transitions
+- Animated statistics
+- Accordion transitions
+- Carousel movement
+- Dropdown animations
+- Smooth navigation behavior
+- Subtle hero background movement
+
+### Strict animation rules
+
+Do not animate every element excessively.
+
+Do not cause layout shifts.
+
+Do not compromise accessibility.
+
+Do not create unnecessary scroll hijacking.
+
+Maintain responsiveness on lower-powered mobile devices.
+
+Respect `prefers-reduced-motion`.
+
+---
+
+# 11. RESPONSIVE DESIGN
+
+The website must be fully responsive.
+
+Test representative viewport widths:
+
+- 360px
+- 390px
+- 430px
+- 768px
+- 1024px
+- 1280px
+- 1440px
+- 1920px
+
+### Desktop
+
+Maintain the reference's centered, elegant layout.
+
+### Tablet
+
+Adapt grids and spacing intelligently.
+
+### Mobile
+
+- Readable typography
+- No horizontal overflow
+- No cut-off cards
+- Correct image scaling
+- Usable menus
+- Stacked timeline
+- Touch-friendly controls
+- Properly sized buttons
+- Accessible accordions
+- Optimized book cards
+- Smooth checkout flow
+
+The mobile experience should feel intentionally designed, not merely compressed.
+
+---
+
+# 12. SEO, ACCESSIBILITY AND PERFORMANCE
+
+Implement production-quality standards.
+
+### SEO
+
+- Unique titles and descriptions
+- Semantic heading hierarchy
+- Canonical URLs
+- Open Graph metadata
+- Sitemap
+- Robots configuration
+- Structured data where applicable
+- Book and Product schema using real values
+
+### Accessibility
+
+- Semantic HTML
+- Keyboard navigation
+- Visible focus indicators
+- Correct form labels
+- Accessible color contrast
+- Alt text for informative images
+- ARIA for interactive controls
+- Reduced-motion support
+
+### Performance
+
+- Optimized images
+- Lazy loading below the fold
+- Modern image formats
+- Appropriate responsive image sizes
+- Code splitting
+- Dynamic imports where appropriate
+- Font optimization
+- Minimal unnecessary dependencies
+- No expensive continuous animations on mobile
+
+Aim for excellent Core Web Vitals without compromising visual quality.
+
+---
+
+# 13. BACKEND AND DATA PROTECTION
+
+The existing e-commerce system must remain functional.
+
+Preserve:
+
+- Existing product identifiers
+- Customer accounts
+- Authentication records
+- Orders
+- Payment integration
+- Shipping data
+- Database tables
+- Admin permissions
+- Transaction records
+- Existing API contracts where feasible
+
+If schema changes are needed:
+
+1. Explain them.
+2. Make them backward compatible wherever possible.
+3. Provide migrations.
+4. Avoid destructive operations.
+5. Preserve existing data.
+6. Test changes against a non-production environment.
+
+Use server-side validation for sensitive operations.
+
+Ensure authorization checks for administrative actions.
+
+Do not expose sensitive customer information.
+
+---
+
+# 14. ADMIN PANEL
+
+Preserve the existing admin dashboard.
+
+Required e-commerce capabilities, where already available, include:
+
+- Product management
+- Book cover management
+- Author management
+- Inventory
+- Orders
+- Customer management
+- Promotions and discounts
+
+Do not rebuild the admin panel unnecessarily.
+
+If a corporate CMS is needed for services, Gurukul articles, achievements or careers, evaluate the existing content architecture first.
+
+Keep administrative interfaces access-controlled.
+
+---
+
+# 15. DESIGN QUALITY CONTROL
+
+After implementing each section, compare it against the corresponding reference screenshot.
+
+Check:
+
+- Width
+- Alignment
+- Colors
+- Typography
+- Spacing
+- Borders
+- Radius
+- Shadows
+- Image position
+- Content hierarchy
+- Animation
+- Responsiveness
+
+Do not settle for a generic corporate template.
+
+Do not use placeholder images when approved reference assets exist.
+
+Do not repeat the same stock imagery across unrelated sections.
+
+Do not introduce arbitrary floating elements.
+
+Do not make the page unnecessarily cluttered.
+
+Do not change the reference's visual personality.
+
+The completed site should feel like the same premium brand throughout.
+
+---
+
+# 16. IMPLEMENTATION PHASES
+
+Work in controlled phases.
+
+### PHASE 1 — Architecture Audit
+
+Inspect the project.
+
+Identify existing functionality and reusable elements.
+
+Document the proposed changes.
+
+### PHASE 2 — Design Foundation
+
+Implement:
+
+- Global design tokens
+- Typography
+- Layout system
+- Shared components
+- Navigation
+- Footer
+- Responsive foundations
+
+### PHASE 3 — Corporate Homepage
+
+Rebuild all homepage sections in the exact reference order.
+
+### PHASE 4 — Corporate Inner Pages
+
+Implement About, Services, Gurukul, Achievements, Careers and Contact.
+
+### PHASE 5 — Sahayak Books Integration
+
+Move the bookstore experience into the corporate platform while preserving the existing e-commerce system.
+
+### PHASE 6 — Animations and Polish
+
+Implement smooth interactions and refine visual fidelity.
+
+### PHASE 7 — Testing
+
+Test:
+
+- Routes
+- Links
+- Forms
+- Navigation
+- Search
+- Filters
+- Cart
+- Wishlist
+- Login
+- Checkout
+- Order persistence
+- Admin functionality
+- Responsive layouts
+- Accessibility
+- Performance
+
+### PHASE 8 — Final Review
+
+Run production build and available automated tests.
+
+Resolve errors.
+
+Inspect all affected pages.
+
+Report any unsupported or incomplete functionality.
+
+Do not deploy, push to the remote repository or change production infrastructure without explicit authorization.
+
+---
+
+# 17. ANTIGRAVITY EXECUTION RULES
+
+You are working inside an existing codebase.
+
+Use its existing architecture wherever practical.
+
+Do not start a new unrelated project.
+
+Do not change frameworks simply because another framework is preferred.
+
+Do not install packages without checking compatibility.
+
+Do not remove working code without understanding its dependencies.
+
+Keep components reusable and logically organized.
+
+Maintain clean TypeScript where the project uses TypeScript.
+
+Preserve existing route functionality during migration.
+
+Implement actual working interactions, not decorative buttons with no actions.
+
+Avoid mocked checkout, login or customer-account functionality.
+
+Do not hide failing tests or disable checks to make a build pass.
+
+After each phase:
+
+1. Summarize changed files.
+2. Explain what was implemented.
+3. Run relevant validation.
+4. Identify unresolved issues.
+5. State the next phase.
+
+If important information or assets are missing, clearly identify them.
+
+Never silently invent client-specific facts.
+
+---
+
+# 18. FINAL ACCEPTANCE CRITERIA
+
+The project will be accepted only when:
+
+- The website's primary identity is Sahayak Associates.
+- The homepage closely matches the provided corporate reference.
+- Corporate sections appear in the correct order.
+- Typography and colors are consistent.
+- Navigation works.
+- Corporate pages are implemented.
+- Sahayak Books has a dedicated page.
+- Book data and images are preserved.
+- Product details work.
+- Cart and wishlist work.
+- Checkout functionality is preserved.
+- Customer login remains functional.
+- Admin access remains functional.
+- The website is responsive.
+- Animations are smooth.
+- No broken images appear.
+- No major layout overflow exists.
+- No dead links are presented as functional.
+- No unsupported financial claims are introduced.
+- Existing database information remains intact.
+- The production build succeeds.
+- Available automated tests pass.
+
+---
+
+# 19. START NOW
+
+Begin by auditing the existing Sahayak Books repository and examining the supplied screenshots.
+
+Create a detailed implementation plan that maps the existing architecture to the new Sahayak Associates corporate experience.
+
+Then begin implementing the redesign in the controlled phases described above.
+
+Prioritize:
+
+**Visual accuracy → Functionality preservation → Responsive quality → Animation polish → Production reliability.**
+
+Do not rush the implementation.
+
+The final result must look like a carefully engineered, premium Sahayak Associates website with Sahayak Books seamlessly integrated as a dedicated online bookstore.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-14T13:24:29+05:30.
+
+The user's current state is as follows:
+Browser State:
+  Page 3CBA61A2AF9153D703AC3F35FB64DB8E (Sahayak Books - Powered by Sahayak Associates) - http://localhost:3000/ [ACTIVE]
+    Viewport: 2560x1305, Page Height: 5383
+  Page B54B38B595401ACFC0375F05E0AD3DC3 () - https://ep2.adtrafficquality.google/sodar/sodar2/255/runner.html
+    Viewport: 0x0, Page Height: 10753
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.8 Flash (High) to Claude Sonnet 4.6 (Thinking). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
