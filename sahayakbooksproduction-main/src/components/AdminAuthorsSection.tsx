@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Author, Book, MediaItem } from '../types';
 import { uploadFileToR2 } from '../services/r2MediaService';
+import { processImageFile } from '../utils/imageUtils';
 import {
   Users,
   Plus,
@@ -206,29 +207,47 @@ export const AdminAuthorsSection: React.FC = () => {
   };
 
   // Process selected Avatar file
-  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setStatusMessage({ type: 'error', text: 'Avatar image exceeds 10MB limit.' });
+    if (file.size > 15 * 1024 * 1024) {
+      setStatusMessage({ type: 'error', text: 'Avatar image exceeds 15MB limit.' });
       return;
     }
     setAvatarFile(file);
-    setPreviewAvatarUrl(URL.createObjectURL(file));
-    setStatusMessage({ type: 'info', text: `Avatar file "${file.name}" selected. Save author profile to upload.` });
+    try {
+      const processed = await processImageFile(file, 800, 800, 0.85);
+      setPreviewAvatarUrl(processed.dataUrl);
+      if (editingAuthor) {
+        setEditingAuthor({ ...editingAuthor, avatar: processed.dataUrl });
+      }
+      setStatusMessage({ type: 'info', text: `Avatar "${file.name}" processed (${processed.size}). Save profile to update everywhere.` });
+    } catch {
+      setPreviewAvatarUrl(URL.createObjectURL(file));
+      setStatusMessage({ type: 'info', text: `Avatar file "${file.name}" selected. Save author profile to upload.` });
+    }
   };
 
   // Process selected Cover Image file
-  const handleCoverFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setStatusMessage({ type: 'error', text: 'Cover image exceeds 10MB limit.' });
+    if (file.size > 15 * 1024 * 1024) {
+      setStatusMessage({ type: 'error', text: 'Cover image exceeds 15MB limit.' });
       return;
     }
     setCoverFile(file);
-    setPreviewCoverUrl(URL.createObjectURL(file));
-    setStatusMessage({ type: 'info', text: `Cover banner file "${file.name}" selected. Save author profile to upload.` });
+    try {
+      const processed = await processImageFile(file, 1600, 600, 0.85);
+      setPreviewCoverUrl(processed.dataUrl);
+      if (editingAuthor) {
+        setEditingAuthor({ ...editingAuthor, coverImage: processed.dataUrl });
+      }
+      setStatusMessage({ type: 'info', text: `Cover banner "${file.name}" processed (${processed.size}). Save profile to update.` });
+    } catch {
+      setPreviewCoverUrl(URL.createObjectURL(file));
+      setStatusMessage({ type: 'info', text: `Cover banner file "${file.name}" selected. Save author profile to upload.` });
+    }
   };
 
   // Media Library selection
@@ -342,9 +361,9 @@ export const AdminAuthorsSection: React.FC = () => {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)+/g, '');
 
-      let finalAvatar = editingAuthor.avatar || DEFAULT_AUTHOR_AVATAR;
+      let finalAvatar = previewAvatarUrl || editingAuthor.avatar || DEFAULT_AUTHOR_AVATAR;
       let finalMediaId = editingAuthor.profileMediaId;
-      let finalCoverImage = editingAuthor.coverImage || '';
+      let finalCoverImage = previewCoverUrl || editingAuthor.coverImage || '';
 
       // Upload avatar file if selected
       if (avatarFile) {

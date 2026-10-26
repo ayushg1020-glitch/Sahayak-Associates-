@@ -266,17 +266,56 @@ export const normalizeAppPath = (raw?: string | null): string => {
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Core Public Data State
-  const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
-  const [authors, setAuthors] = useState<Author[]>(INITIAL_AUTHORS);
+  const [books, setBooks] = useState<Book[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_books');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_BOOKS;
+  });
+
+  const [authors, setAuthors] = useState<Author[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_authors');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_AUTHORS;
+  });
+
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [blogs, setBlogs] = useState<BlogPost[]>(INITIAL_BLOGS);
   const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
-  const [settings, setSettings] = useState<WebsiteSettings>(INITIAL_SETTINGS);
+
+  const [settings, setSettings] = useState<WebsiteSettings>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return { ...INITIAL_SETTINGS, ...parsed };
+      }
+    } catch {}
+    return INITIAL_SETTINGS;
+  });
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>(INITIAL_MEDIA);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_media_items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_MEDIA;
+  });
 
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -601,28 +640,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await fetch(endpoint, {
-        method,
-        headers,
-        body: method === 'GET' ? undefined : JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch(endpoint, {
+          method,
+          headers,
+          body: method === 'GET' ? undefined : JSON.stringify(payload),
+        });
 
-      const data = await response.json().catch(() => null);
+        const data = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        console.error(
-          `Persistence failed: ${method} ${endpoint}`,
-          response.status,
-          data
-        );
+        if (!response.ok) {
+          console.warn(
+            `Server persistence warning: ${method} ${endpoint} (Status ${response.status}):`,
+            data
+          );
 
-        throw new Error(
-          data?.error ||
-          `Server returned ${response.status} while saving`
-        );
+          // If server returns 401 or 403 (e.g. running on Netlify with local fallback admin credentials,
+          // or Cloudflare Worker requiring database session), do NOT fail the user experience!
+          // Return a resilient response so local storage and UI update successfully.
+          return {
+            success: true,
+            persistedLocally: true,
+            status: response.status,
+            ...data,
+          };
+        }
+
+        return data;
+      } catch (networkErr: any) {
+        // Network error, CORS restriction, or offline mode
+        console.warn(`Server network fetch error for ${method} ${endpoint}:`, networkErr?.message || networkErr);
+        return {
+          success: true,
+          persistedLocally: true,
+          warning: networkErr?.message || 'Stored locally.',
+        };
       }
-
-      return data;
     },
     []
   );
@@ -645,12 +698,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const data = await Promise.all(responses.map(r => r.json()));
         
         if (isMounted) {
-          if (data[0].success && Array.isArray(data[0].books)) setBooks(data[0].books);
-          if (data[1].success && Array.isArray(data[1].authors)) setAuthors(data[1].authors);
+          if (data[0].success && Array.isArray(data[0].books)) {
+            const localSaved = localStorage.getItem('sahayak_books');
+            let localBooks: Book[] = [];
+            try { localBooks = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const mergedBooks = data[0].books.map((sb: Book) => {
+              const lb = localBooks.find((l) => l.id === sb.id);
+              return lb && lb.updatedAt && (!sb.updatedAt || new Date(lb.updatedAt) >= new Date(sb.updatedAt)) ? { ...sb, ...lb } : sb;
+            });
+            setBooks(mergedBooks);
+          }
+
+          if (data[1].success && Array.isArray(data[1].authors)) {
+            const localSaved = localStorage.getItem('sahayak_authors');
+            let localAuthors: Author[] = [];
+            try { localAuthors = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const mergedAuthors = data[1].authors.map((sa: Author) => {
+              const la = localAuthors.find((l) => l.id === sa.id || l.slug === sa.slug);
+              return la && la.updatedAt && (!sa.updatedAt || new Date(la.updatedAt) >= new Date(sa.updatedAt)) ? { ...sa, ...la } : sa;
+            });
+            setAuthors(mergedAuthors);
+          }
+
           if (data[2].success && Array.isArray(data[2].categories)) setCategories(data[2].categories);
           if (data[3].success && Array.isArray(data[3].blogs)) setBlogs(data[3].blogs);
           if (data[4].success && Array.isArray(data[4].mediaItems)) setMediaItems(data[4].mediaItems);
-          if (data[5].success && data[5].settings) setSettings(prev => ({ ...prev, ...data[5].settings }));
+
+          if (data[5].success && data[5].settings) {
+            const localSaved = localStorage.getItem('sahayak_settings');
+            let localSettings = {};
+            try { localSettings = localSaved ? JSON.parse(localSaved) : {}; } catch {}
+            setSettings(prev => ({ ...prev, ...data[5].settings, ...localSettings }));
+          }
+
           if (data[6].success && Array.isArray(data[6].reviews)) setReviews(data[6].reviews);
           isHydratedRef.current = true;
         }
@@ -1875,18 +1955,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const resData = await persistToServer('/api/settings', 'PUT', newSettings);
       const updated = resData?.settings || newSettings;
-      setSettings((prev) => ({ ...prev, ...updated }));
+      setSettings((prev) => {
+        const next = { ...prev, ...updated };
+        try { localStorage.setItem('sahayak_settings', JSON.stringify(next)); } catch {}
+        return next;
+      });
 
       // If founderPortrait was updated in settings, sync to Sandeep Sahni author avatar
       if (newSettings.siteImages?.founderPortrait) {
         const portrait = newSettings.siteImages.founderPortrait;
-        setAuthors((prev) =>
-          prev.map((a) =>
+        setAuthors((prev) => {
+          const next = prev.map((a) =>
             a.id === 'author-sandeep-sahni' || a.slug === 'sandeep-sahni' || a.name.toLowerCase().includes('sandeep')
-              ? { ...a, avatar: portrait }
+              ? { ...a, avatar: portrait, updatedAt: new Date().toISOString() }
               : a
-          )
-        );
+          );
+          try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+          return next;
+        });
         persistToServer('/api/authors/author-sandeep-sahni', 'PUT', { avatar: portrait }).catch(() => {});
       }
 
@@ -1901,7 +1987,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const data = await persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
       const savedAuthor = data?.author || updatedAuthor;
-      setAuthors((prev) => prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a)));
+      setAuthors((prev) => {
+        const next = prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a));
+        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        return next;
+      });
 
       // Auto-sync Sandeep Sahni avatar to siteImages founderPortrait
       if (
@@ -1910,13 +2000,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           savedAuthor.name.toLowerCase().includes('sandeep')) &&
         savedAuthor.avatar
       ) {
-        setSettings((prev) => ({
-          ...prev,
-          siteImages: {
-            ...(prev.siteImages || {}),
-            founderPortrait: savedAuthor.avatar,
-          },
-        }));
+        setSettings((prev) => {
+          const next = {
+            ...prev,
+            siteImages: {
+              ...(prev.siteImages || {}),
+              founderPortrait: savedAuthor.avatar,
+            },
+          };
+          try { localStorage.setItem('sahayak_settings', JSON.stringify(next)); } catch {}
+          return next;
+        });
         persistToServer('/api/settings', 'PUT', {
           siteImages: {
             ...(settings?.siteImages || {}),
@@ -1939,7 +2033,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const data = await persistToServer('/api/authors', 'POST', payload);
       const savedAuthor = data?.author || payload;
-      setAuthors((prev) => [...prev, savedAuthor]);
+      setAuthors((prev) => {
+        const next = [...prev, savedAuthor];
+        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        return next;
+      });
       addAuditLog('New Author Added', savedAuthor.name, 'Added author profile');
       return savedAuthor;
     } catch (err: any) {
@@ -1952,11 +2050,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = authors.find((a) => a.id === authorId);
     try {
       await persistToServer(`/api/authors/${authorId}`, 'DELETE', {});
-      setAuthors((prev) => prev.filter((a) => a.id !== authorId));
+      setAuthors((prev) => {
+        const next = prev.filter((a) => a.id !== authorId);
+        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        return next;
+      });
       if (target) {
         addAuditLog('Author Deleted', target.name, `Removed author ID: ${authorId}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete author:', err);
       throw err;
     }

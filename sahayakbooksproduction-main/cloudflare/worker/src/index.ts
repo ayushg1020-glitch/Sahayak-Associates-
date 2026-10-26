@@ -273,13 +273,21 @@ function getCorsHeaders(request: Request, env: Env) {
   const allowedOriginsRaw = env.ALLOWED_ORIGINS || 'https://sahayakbook.netlify.app,https://sahayakbooks.com,https://www.sahayakbooks.com,https://sahayakbooks.netlify.app,http://localhost:3000,http://localhost:5173';
   const allowedOrigins = allowedOriginsRaw.split(',').map(o => o.trim().toLowerCase());
 
-  let allowedOrigin = '';
-  if (origin && allowedOrigins.includes(origin.toLowerCase())) {
-    allowedOrigin = origin;
-  } else if (!origin) {
-    allowedOrigin = allowedOrigins[0] || 'https://sahayakbook.netlify.app';
+  let allowedOrigin = '*';
+  if (origin) {
+    if (
+      allowedOrigins.includes(origin.toLowerCase()) ||
+      origin.endsWith('.netlify.app') ||
+      origin.includes('sahayak') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
+      allowedOrigin = origin;
+    } else {
+      allowedOrigin = origin;
+    }
   } else {
-    allowedOrigin = allowedOrigins[0] || 'https://sahayakbook.netlify.app';
+    allowedOrigin = '*';
   }
 
   return {
@@ -2055,32 +2063,64 @@ export default {
           return new Response(JSON.stringify({ success: false, error: 'MEDIA_PUBLIC_BASE_URL is not configured' }), { status: 500, headers: corsHeaders });
         }
 
-        const formData = await request.formData();
-        const file = formData.get('file') as File;
-        if (!file) {
-          return new Response(JSON.stringify({ success: false, error: 'No file provided' }), { status: 400, headers: corsHeaders });
+        let fileBuffer: ArrayBuffer | null = null;
+        let mimeType = 'image/jpeg';
+        let originalFilename = 'file.jpg';
+        let folder = 'books';
+        let altText = '';
+        let caption = '';
+        let fileSizeBytes = 0;
+
+        const contentType = request.headers.get('content-type') || '';
+        if (contentType.includes('multipart/form-data')) {
+          const formData = await request.formData();
+          const file = formData.get('file') as File;
+          if (!file) {
+            return new Response(JSON.stringify({ success: false, error: 'No file provided' }), { status: 400, headers: corsHeaders });
+          }
+          mimeType = file.type || 'image/jpeg';
+          originalFilename = file.name || 'file';
+          fileSizeBytes = file.size;
+          fileBuffer = await file.arrayBuffer();
+          folder = (formData.get('folder') as string || 'books').trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+          altText = (formData.get('altText') as string) || '';
+          caption = (formData.get('caption') as string) || '';
+        } else {
+          const body = await request.json() as any;
+          if (!body || !body.dataUrl) {
+            return new Response(JSON.stringify({ success: false, error: 'No file or dataUrl provided' }), { status: 400, headers: corsHeaders });
+          }
+          originalFilename = body.originalFilename || 'image.jpg';
+          mimeType = body.mimeType || 'image/jpeg';
+          folder = (body.folder || 'books').trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+          altText = body.altText || '';
+          caption = body.caption || '';
+
+          const matches = body.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          const rawBase64 = matches ? matches[2] : body.dataUrl;
+          if (matches) mimeType = matches[1];
+
+          const binaryString = atob(rawBase64);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          fileBuffer = bytes.buffer;
+          fileSizeBytes = bytes.byteLength;
         }
 
-        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-          return new Response(JSON.stringify({ success: false, error: 'Only image files and PDFs are allowed' }), { status: 400, headers: corsHeaders });
-        }
-
-        if (file.type.startsWith('image/') && file.size > 10 * 1024 * 1024) {
+        if (fileSizeBytes > 10 * 1024 * 1024) {
           return new Response(JSON.stringify({ success: false, error: 'Image size exceeds 10 MB limit' }), { status: 400, headers: corsHeaders });
         }
 
-        const folder = (formData.get('folder') as string || 'books').trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
-        const altText = (formData.get('altText') as string) || '';
-        const caption = (formData.get('caption') as string) || '';
-
         const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
         const uuid = crypto.randomUUID().slice(0, 8);
-        const safeFilename = (file.name || 'file').replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
+        const safeFilename = originalFilename.replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
         const key = `sahayak/${folder}/${timestamp}-${uuid}-${safeFilename}`;
 
-        await env.MEDIA_BUCKET.put(key, file.stream(), {
+        await env.MEDIA_BUCKET.put(key, fileBuffer, {
           httpMetadata: {
-            contentType: file.type
+            contentType: mimeType
           }
         });
 
@@ -2096,33 +2136,32 @@ export default {
         `).bind(
           mediaId,
           safeFilename,
-          file.name,
+          originalFilename,
           key,
           publicUrl,
-          file.type,
-          file.size,
+          mimeType,
+          fileSizeBytes,
           folder,
           altText,
           caption,
           'cloudflare-r2',
           auth.userId,
           now,
-          now
         ).run();
 
         const mediaItem = {
           id: mediaId,
           name: safeFilename,
           fileName: safeFilename,
-          originalFileName: file.name,
-          originalFilename: file.name,
+          originalFileName: originalFilename,
+          originalFilename: originalFilename,
           objectKey: key,
           url: publicUrl,
           publicUrl: publicUrl,
-          mimeType: file.type,
-          size: `${Math.round(file.size / 1024)} KB`,
-          fileSize: `${Math.round(file.size / 1024)} KB`,
-          fileSizeBytes: file.size,
+          mimeType: mimeType,
+          size: `${Math.round(fileSizeBytes / 1024)} KB`,
+          fileSize: `${Math.round(fileSizeBytes / 1024)} KB`,
+          fileSizeBytes: fileSizeBytes,
           folder: folder.charAt(0).toUpperCase() + folder.slice(1),
           category: folder,
           altText,
