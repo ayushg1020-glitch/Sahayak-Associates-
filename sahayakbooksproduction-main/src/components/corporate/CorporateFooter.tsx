@@ -168,12 +168,6 @@ export const CorporateFooter: React.FC = () => {
                   Financial Articles &amp; Insights
                 </button>
               </li>
-              <li className="pt-1">
-                <button onClick={() => handleNav('/admin')} className="text-stone-500 hover:text-stone-300 transition-colors text-left flex items-center gap-1">
-                  <span>Admin Master Login</span>
-                  <span className="text-[9px] border border-stone-700 px-1 rounded">Staff</span>
-                </button>
-              </li>
             </ul>
           </div>
 
@@ -242,7 +236,17 @@ export const CorporateFooter: React.FC = () => {
 
         {/* Copyright & Statutory Line */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500 border-t border-stone-800/80 pt-6">
-          <p>© 2026 Sahayak Associates. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p>© 2026 Sahayak Associates. All rights reserved.</p>
+            <span className="text-stone-700">·</span>
+            <button
+              onClick={() => handleNav('/admin')}
+              className="text-stone-600 hover:text-stone-300 transition-colors text-[11px] inline-flex items-center gap-1 cursor-pointer"
+              title="Restricted Staff Portal"
+            >
+              <span>Admin Portal</span>
+            </button>
+          </div>
           <p className="text-right text-[11px] text-stone-400">
             Mutual Fund investments are subject to market risks. Please read all scheme related documents carefully.
           </p>

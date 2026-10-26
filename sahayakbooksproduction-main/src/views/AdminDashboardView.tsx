@@ -1187,35 +1187,6 @@ export const AdminDashboardView: React.FC = () => {
             </div>
           )}
 
-          {/* Quick Auto-Fill Official Credentials Helper */}
-          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-2xl flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-[#C5A059]" />
-                Official Admin Credentials
-              </span>
-              <span className="text-[9px] font-mono font-bold bg-[#C5A059]/20 text-[#0B192C] px-1.5 py-0.5 rounded">
-                SUPER_ADMIN
-              </span>
-            </div>
-            <div className="text-[10px] text-stone-600 font-mono grid grid-cols-1 gap-0.5 bg-white/80 p-2 rounded-xl border border-amber-100">
-              <div><span className="text-stone-400">Email: </span><strong className="text-stone-800">admin@sahayakassociates.org</strong></div>
-              <div><span className="text-stone-400">Password: </span><strong className="text-stone-800">Admin@12345</strong></div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setLoginEmail('admin@sahayakassociates.org');
-                setLoginPassword('Admin@12345');
-                setLoginError('');
-              }}
-              className="w-full py-1.5 px-3 bg-[#0B192C] hover:bg-[#152A4A] text-[#C5A059] rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
-            >
-              <Check className="w-3.5 h-3.5 text-[#C5A059]" />
-              <span>Click to Auto-Fill Credentials</span>
-            </button>
-          </div>
-
           <form onSubmit={handleAdminLoginSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block font-bold text-stone-700 mb-1">Administrative Email</label>
@@ -1223,15 +1194,9 @@ export const AdminDashboardView: React.FC = () => {
                 type="email"
                 required
                 value={loginEmail}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  // Auto-correct common typo if user wrote sahayakkassociates (two k's)
-                  if (val.trim().toLowerCase() === 'admin@sahayakkassociates.org') {
-                    val = 'admin@sahayakassociates.org';
-                  }
-                  setLoginEmail(val);
-                }}
-                placeholder="admin@sahayakassociates.org"
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="Enter administrator email"
+                autoComplete="email"
                 className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]"
               />
             </div>
@@ -1244,7 +1209,8 @@ export const AdminDashboardView: React.FC = () => {
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="••••••••••"
+                  placeholder="Enter administrator password"
+                  autoComplete="current-password"
                   className="w-full p-3 pr-10 bg-stone-50 border border-stone-300 rounded-xl font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]"
                 />
                 <button

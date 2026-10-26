@@ -286,33 +286,6 @@ export const AuthModal: React.FC = () => {
             <span>Continue with Google Account</span>
           </button>
 
-          {/* 1-Click Fast Demo Credentials Buttons */}
-          <div className="pt-2 bg-white/5 p-3 rounded-xl border border-white/10 space-y-2">
-            <div className="flex items-center justify-between text-[11px] text-[#C5A059] font-bold">
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                1-Click Quick Demo Sign-In:
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={handleQuickCustomerDemo}
-                className="py-1.5 px-2.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-[11px] font-medium border border-stone-600 transition-colors flex items-center justify-center gap-1"
-              >
-                <UserCheck className="w-3 h-3 text-emerald-400" />
-                <span>Demo Reader</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleQuickAdminDemo}
-                className="py-1.5 px-2.5 rounded-lg bg-[#C5A059]/20 hover:bg-[#C5A059]/30 text-[#C5A059] text-[11px] font-bold border border-[#C5A059]/40 transition-colors flex items-center justify-center gap-1"
-              >
-                <ShieldCheck className="w-3 h-3" />
-                <span>Admin Login</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Modal Switch Tab Footer */}

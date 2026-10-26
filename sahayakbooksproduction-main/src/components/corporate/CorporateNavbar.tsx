@@ -295,14 +295,6 @@ export const CorporateNavbar: React.FC = () => {
                 >
                   My Account & Orders
                 </button>
-                <div className="h-px bg-stone-100 my-1" />
-                <button
-                  onClick={() => handleNav('/admin')}
-                  className="w-full text-left px-4 py-2 text-xs font-medium text-[#071526] hover:bg-[#F5F2EA] hover:text-[#C9A24E] transition-colors flex items-center justify-between"
-                >
-                  <span>Admin Master</span>
-                  <span className="text-[10px] bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded">Staff</span>
-                </button>
               </div>
             )}
           </div>
@@ -444,12 +436,6 @@ export const CorporateNavbar: React.FC = () => {
             className="w-full text-left py-2 px-3 rounded-lg text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
             Client / Reader Login
-          </button>
-          <button
-            onClick={() => handleNav('/admin')}
-            className="w-full text-left py-2 px-3 rounded-lg text-sm font-medium text-stone-500 hover:bg-stone-50"
-          >
-            Admin Dashboard
           </button>
           <div className="pt-2">
             <button

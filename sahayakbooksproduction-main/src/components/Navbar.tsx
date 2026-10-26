@@ -329,20 +329,7 @@ export const Navbar: React.FC = () => {
                     <span>Saved Books</span>
                   </button>
 
-                  {hasAdminAccess && (
-                    <button
-                      id="dropdown-nav-admin"
-                      onClick={() => {
-                        ensureAdminAccess();
-                        handleNavClick('/admin');
-                        setIsUserDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-xs text-stone-300 hover:bg-white/5 hover:text-[#C5A059] transition-colors flex items-center gap-2 border-t border-white/5 cursor-pointer"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-[#C5A059]" />
-                      <span>Admin Panel</span>
-                    </button>
-                  )}
+
 
                   <button
                     id="dropdown-nav-logout"
@@ -359,26 +346,7 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            {/* Direct 1-Click Admin Access Button */}
-            {hasAdminAccess && (
-              <button
-                id="header-admin-btn"
-                onClick={() => {
-                  ensureAdminAccess();
-                  handleNavClick('/admin');
-                }}
-                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${
-                  currentPath.startsWith('/admin')
-                    ? 'bg-[#C5A059] text-[#0B192C] border-[#C5A059] shadow-sm'
-                    : 'bg-white/5 text-[#C5A059] border-[#C5A059]/40 hover:bg-[#C5A059] hover:text-[#0B192C]'
-                }`}
-                title="Open Sahayak Admin Control Center (/admin)"
-                aria-label="Admin Portal"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                <span>Admin</span>
-              </button>
-            )}
+
 
             {/* Mobile Menu Hamburger */}
             <button
@@ -470,18 +438,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
-              {hasAdminAccess && (
-                <button
-                  onClick={() => {
-                    ensureAdminAccess();
-                    handleNavClick('/admin');
-                  }}
-                  className="w-full py-2.5 px-4 rounded-lg bg-[#C5A059]/15 border border-[#C5A059]/40 text-[#C5A059] text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#C5A059] hover:text-[#0B192C] transition-colors cursor-pointer"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#C5A059]" />
-                  <span>Sahayak Admin Panel (/admin)</span>
-                </button>
-              )}
+
 
               {!currentUser ? (
                 <button

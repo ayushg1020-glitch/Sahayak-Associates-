@@ -274,10 +274,11 @@ export const Footer: React.FC = () => {
               ensureAdminAccess();
               handleNavClick('/admin');
             }}
-            className="text-[#C5A059] hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+            className="text-stone-400 hover:text-[#C5A059] transition-colors inline-flex items-center gap-1 cursor-pointer"
+            title="Restricted Staff Portal"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Admin Center</span>
+            <span>Admin Portal</span>
           </button>
         </div>
       </div>

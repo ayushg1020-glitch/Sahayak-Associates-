@@ -1218,7 +1218,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return {
       success: false,
-      error: 'Invalid credentials. Official credentials: admin@sahayakassociates.org / Admin@12345',
+      error: 'Invalid email or password. Please verify your credentials and try again.',
     };
   };
 
