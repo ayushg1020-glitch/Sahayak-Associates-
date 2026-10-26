@@ -264,6 +264,28 @@ export const normalizeAppPath = (raw?: string | null): string => {
   return queryString !== undefined && queryString.length > 0 ? `${normalized}?${queryString}` : normalized;
 };
 
+// Cross-tab real-time synchronization helper
+const SYNC_CHANNEL_NAME = 'sahayak_tab_sync';
+
+function broadcastTabSync(key: string, data: any) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (err) {
+    console.warn(`[TabSync] Failed to write ${key} to localStorage:`, err);
+  }
+
+  try {
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      channel.postMessage({ key, data, timestamp: Date.now() });
+      channel.close();
+    }
+  } catch {
+    // storage event provides automatic fallback
+  }
+}
+
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Core Public Data State
   const [books, setBooks] = useState<Book[]>(() => {
@@ -288,10 +310,49 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return INITIAL_AUTHORS;
   });
 
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
-  const [blogs, setBlogs] = useState<BlogPost[]>(INITIAL_BLOGS);
-  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_CATEGORIES;
+  });
+
+  const [reviews, setReviews] = useState<Review[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_reviews');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_REVIEWS;
+  });
+
+  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_blogs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_BLOGS;
+  });
+
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    try {
+      const saved = localStorage.getItem('sahayak_coupons');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_COUPONS;
+  });
 
   const [settings, setSettings] = useState<WebsiteSettings>(() => {
     try {
@@ -698,40 +759,114 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const data = await Promise.all(responses.map(r => r.json()));
         
         if (isMounted) {
+          // 1. Books
           if (data[0].success && Array.isArray(data[0].books)) {
             const localSaved = localStorage.getItem('sahayak_books');
             let localBooks: Book[] = [];
             try { localBooks = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const serverBookIds = new Set(data[0].books.map((b: Book) => b.id));
             const mergedBooks = data[0].books.map((sb: Book) => {
               const lb = localBooks.find((l) => l.id === sb.id);
-              return lb && lb.updatedAt && (!sb.updatedAt || new Date(lb.updatedAt) >= new Date(sb.updatedAt)) ? { ...sb, ...lb } : sb;
+              if (lb && lb.updatedAt) {
+                if (!sb.updatedAt || new Date(lb.updatedAt) >= new Date(sb.updatedAt)) {
+                  return { ...sb, ...lb };
+                }
+              } else if (lb) {
+                return { ...sb, ...lb };
+              }
+              return sb;
             });
-            setBooks(mergedBooks);
+            const localOnlyBooks = localBooks.filter((lb) => !serverBookIds.has(lb.id));
+            const finalBooks = [...mergedBooks, ...localOnlyBooks];
+            setBooks(finalBooks);
+            try { localStorage.setItem('sahayak_books', JSON.stringify(finalBooks)); } catch {}
           }
 
+          // 2. Authors
           if (data[1].success && Array.isArray(data[1].authors)) {
             const localSaved = localStorage.getItem('sahayak_authors');
             let localAuthors: Author[] = [];
             try { localAuthors = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const serverAuthorIds = new Set(data[1].authors.map((a: Author) => a.id));
             const mergedAuthors = data[1].authors.map((sa: Author) => {
               const la = localAuthors.find((l) => l.id === sa.id || l.slug === sa.slug);
-              return la && la.updatedAt && (!sa.updatedAt || new Date(la.updatedAt) >= new Date(sa.updatedAt)) ? { ...sa, ...la } : sa;
+              if (la && la.updatedAt) {
+                if (!sa.updatedAt || new Date(la.updatedAt) >= new Date(sa.updatedAt)) {
+                  return { ...sa, ...la };
+                }
+              } else if (la) {
+                return { ...sa, ...la };
+              }
+              return sa;
             });
-            setAuthors(mergedAuthors);
+            const localOnlyAuthors = localAuthors.filter((la) => !serverAuthorIds.has(la.id) && !data[1].authors.some((sa: Author) => sa.slug === la.slug));
+            const finalAuthors = [...mergedAuthors, ...localOnlyAuthors];
+            setAuthors(finalAuthors);
+            try { localStorage.setItem('sahayak_authors', JSON.stringify(finalAuthors)); } catch {}
           }
 
-          if (data[2].success && Array.isArray(data[2].categories)) setCategories(data[2].categories);
-          if (data[3].success && Array.isArray(data[3].blogs)) setBlogs(data[3].blogs);
-          if (data[4].success && Array.isArray(data[4].mediaItems)) setMediaItems(data[4].mediaItems);
+          // 3. Categories
+          if (data[2].success && Array.isArray(data[2].categories)) {
+            const localSaved = localStorage.getItem('sahayak_categories');
+            let localCats: Category[] = [];
+            try { localCats = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const finalCats = localCats.length > 0 ? localCats : data[2].categories;
+            setCategories(finalCats);
+            try { localStorage.setItem('sahayak_categories', JSON.stringify(finalCats)); } catch {}
+          }
 
+          // 4. Blogs
+          if (data[3].success && Array.isArray(data[3].blogs)) {
+            const localSaved = localStorage.getItem('sahayak_blogs');
+            let localBlogs: BlogPost[] = [];
+            try { localBlogs = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const finalBlogs = localBlogs.length > 0 ? localBlogs : data[3].blogs;
+            setBlogs(finalBlogs);
+            try { localStorage.setItem('sahayak_blogs', JSON.stringify(finalBlogs)); } catch {}
+          }
+
+          // 5. Media Items
+          if (data[4].success && Array.isArray(data[4].mediaItems)) {
+            const localSaved = localStorage.getItem('sahayak_media_items');
+            let localMedia: MediaItem[] = [];
+            try { localMedia = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const serverMediaIds = new Set(data[4].mediaItems.map((m: MediaItem) => m.id));
+            const localOnlyMedia = localMedia.filter((lm) => !serverMediaIds.has(lm.id));
+            const finalMedia = [...data[4].mediaItems, ...localOnlyMedia];
+            setMediaItems(finalMedia);
+            try { localStorage.setItem('sahayak_media_items', JSON.stringify(finalMedia)); } catch {}
+          }
+
+          // 6. Settings
           if (data[5].success && data[5].settings) {
             const localSaved = localStorage.getItem('sahayak_settings');
-            let localSettings = {};
+            let localSettings: any = {};
             try { localSettings = localSaved ? JSON.parse(localSaved) : {}; } catch {}
-            setSettings(prev => ({ ...prev, ...data[5].settings, ...localSettings }));
+            const finalSettings = {
+              ...data[5].settings,
+              ...localSettings,
+              siteImages: {
+                ...(data[5].settings?.siteImages || {}),
+                ...(localSettings?.siteImages || {}),
+              },
+              contactInfo: {
+                ...(data[5].settings?.contactInfo || {}),
+                ...(localSettings?.contactInfo || {}),
+              },
+            };
+            setSettings(finalSettings);
+            try { localStorage.setItem('sahayak_settings', JSON.stringify(finalSettings)); } catch {}
           }
 
-          if (data[6].success && Array.isArray(data[6].reviews)) setReviews(data[6].reviews);
+          // 7. Reviews
+          if (data[6].success && Array.isArray(data[6].reviews)) {
+            const localSaved = localStorage.getItem('sahayak_reviews');
+            let localReviews: Review[] = [];
+            try { localReviews = localSaved ? JSON.parse(localSaved) : []; } catch {}
+            const finalReviews = localReviews.length > 0 ? localReviews : data[6].reviews;
+            setReviews(finalReviews);
+            try { localStorage.setItem('sahayak_reviews', JSON.stringify(finalReviews)); } catch {}
+          }
           isHydratedRef.current = true;
         }
       } catch (err) {
@@ -804,21 +939,60 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     trackEvent('pageview', normalized);
   };
 
-  // Clean legacy server-owned keys from localStorage on boot
+  // Real-time synchronization across browser tabs and windows
   useEffect(() => {
-    const legacyKeys = [
-      'sahayak_books',
-      'sahayak_authors',
-      'sahayak_categories',
-      'sahayak_reviews',
-      'sahayak_blogs',
-      'sahayak_coupons',
-      'sahayak_settings',
-      'sahayak_media',
-      'sahayak_current_user',
-      'sahayak_admin_user',
-    ];
-    legacyKeys.forEach((key) => localStorage.removeItem(key));
+    if (typeof window === 'undefined') return;
+
+    const applySyncUpdate = (key: string, data: any) => {
+      if (!data) return;
+      if (key === 'sahayak_authors' && Array.isArray(data)) {
+        setAuthors(data);
+      } else if (key === 'sahayak_books' && Array.isArray(data)) {
+        setBooks(data);
+      } else if (key === 'sahayak_settings' && typeof data === 'object') {
+        setSettings((prev) => ({ ...prev, ...data }));
+      } else if (key === 'sahayak_categories' && Array.isArray(data)) {
+        setCategories(data);
+      } else if (key === 'sahayak_blogs' && Array.isArray(data)) {
+        setBlogs(data);
+      } else if (key === 'sahayak_reviews' && Array.isArray(data)) {
+        setReviews(data);
+      } else if (key === 'sahayak_coupons' && Array.isArray(data)) {
+        setCoupons(data);
+      } else if (key === 'sahayak_media_items' && Array.isArray(data)) {
+        setMediaItems(data);
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if ('BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        channel.onmessage = (event) => {
+          if (event.data?.key && event.data?.data !== undefined) {
+            applySyncUpdate(event.data.key, event.data.data);
+          }
+        };
+      } catch {}
+    }
+
+    const handleStorageEvent = (event: StorageEvent) => {
+      if (event.key && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          applySyncUpdate(event.key, parsed);
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', handleStorageEvent);
+
+    return () => {
+      if (channel) {
+        try { channel.close(); } catch {}
+      }
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -1656,9 +1830,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const approveReview = async (reviewId: string) => {
     try {
       await persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Approved', approved: true });
-      setReviews((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, approved: true, status: 'Approved' } : r))
-      );
+      setReviews((prev) => {
+        const next = prev.map((r) => (r.id === reviewId ? { ...r, approved: true, status: 'Approved' } : r));
+        broadcastTabSync('sahayak_reviews', next);
+        return next;
+      });
       const targetRev = reviews.find((r) => r.id === reviewId);
       if (targetRev) {
         addAuditLog('Review Approved', targetRev.bookTitle, `Approved review by ${targetRev.userName}`);
@@ -1672,9 +1848,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const rejectReview = async (reviewId: string) => {
     try {
       await persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Rejected', approved: false });
-      setReviews((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Rejected' } : r))
-      );
+      setReviews((prev) => {
+        const next = prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Rejected' } : r));
+        broadcastTabSync('sahayak_reviews', next);
+        return next;
+      });
       const targetRev = reviews.find((r) => r.id === reviewId);
       if (targetRev) {
         addAuditLog('Review Rejected', targetRev.bookTitle, `Rejected review by ${targetRev.userName}`);
@@ -1692,9 +1870,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       rejectReview(reviewId);
     } else {
       persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Pending', approved: false }).catch(() => {});
-      setReviews((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Pending' } : r))
-      );
+      setReviews((prev) => {
+        const next = prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Pending' } : r));
+        broadcastTabSync('sahayak_reviews', next);
+        return next;
+      });
     }
   };
 
@@ -1703,21 +1883,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!target) return;
     const nextFeatured = !target.featured;
     persistToServer(`/api/reviews/${reviewId}`, 'PUT', { featured: nextFeatured }).catch(() => {});
-    setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, featured: nextFeatured } : r)));
+    setReviews((prev) => {
+      const next = prev.map((r) => (r.id === reviewId ? { ...r, featured: nextFeatured } : r));
+      broadcastTabSync('sahayak_reviews', next);
+      return next;
+    });
   };
 
   const updateReviewStatus = (reviewId: string, featuredOrApproved: boolean) => {
     persistToServer(`/api/reviews/${reviewId}`, 'PUT', { featured: featuredOrApproved, approved: true, status: 'Approved' }).catch(() => {});
-    setReviews((prev) =>
-      prev.map((r) => (r.id === reviewId ? { ...r, featured: featuredOrApproved, approved: true, status: 'Approved' } : r))
-    );
+    setReviews((prev) => {
+      const next = prev.map((r) => (r.id === reviewId ? { ...r, featured: featuredOrApproved, approved: true, status: 'Approved' } : r));
+      broadcastTabSync('sahayak_reviews', next);
+      return next;
+    });
   };
 
   const deleteReview = async (reviewId: string) => {
     try {
       await persistToServer(`/api/reviews/${reviewId}`, 'DELETE', {});
       const target = reviews.find((r) => r.id === reviewId);
-      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      setReviews((prev) => {
+        const next = prev.filter((r) => r.id !== reviewId);
+        broadcastTabSync('sahayak_reviews', next);
+        return next;
+      });
       if (target) {
         addAuditLog('Review Deleted', target.bookTitle, `Removed reader review by ${target.userName}`);
       }
@@ -1837,7 +2027,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const resData = await persistToServer('/api/books', 'POST', tempBook);
       const savedBook = resData?.book || tempBook;
-      setBooks((prev) => [savedBook, ...prev]);
+      setBooks((prev) => {
+        const next = [savedBook, ...prev];
+        broadcastTabSync('sahayak_books', next);
+        return next;
+      });
       addAuditLog('Book Created', savedBook.title, `Added new publication: ₹${savedBook.price}`);
       return savedBook;
     } catch (err) {
@@ -1861,7 +2055,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const data = await persistToServer(`/api/books/${updatedBook.id}`, 'PUT', modified);
       const savedBook = data?.book || modified;
-      setBooks((prev) => prev.map((b) => (b.id === updatedBook.id ? savedBook : b)));
+      setBooks((prev) => {
+        const next = prev.map((b) => (b.id === updatedBook.id ? savedBook : b));
+        broadcastTabSync('sahayak_books', next);
+        return next;
+      });
       if (quickViewBook?.id === updatedBook.id) {
         setQuickViewBook(savedBook);
       }
@@ -1877,7 +2075,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = books.find((b) => b.id === bookId);
     try {
       await persistToServer(`/api/books/${bookId}`, 'DELETE', {});
-      setBooks((prev) => prev.filter((b) => b.id !== bookId));
+      setBooks((prev) => {
+        const next = prev.filter((b) => b.id !== bookId);
+        broadcastTabSync('sahayak_books', next);
+        return next;
+      });
       if (target) {
         addAuditLog('Book Deleted', target.title, `Permanently removed book ID: ${bookId}`);
       }
@@ -1904,7 +2106,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const resData = await persistToServer('/api/books', 'POST', copy);
       const savedBook = resData?.book || copy;
-      setBooks((prev) => [savedBook, ...prev]);
+      setBooks((prev) => {
+        const next = [savedBook, ...prev];
+        broadcastTabSync('sahayak_books', next);
+        return next;
+      });
       addAuditLog('Book Duplicated', savedBook.title, `Created draft clone from: ${original.title}`);
       return savedBook;
     } catch (err) {
@@ -1916,9 +2122,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const archiveBook = async (bookId: string) => {
     try {
       await persistToServer(`/api/books/${bookId}`, 'PUT', { status: 'archived' });
-      setBooks((prev) =>
-        prev.map((b) => (b.id === bookId ? { ...b, status: 'archived', updatedAt: new Date().toISOString() } : b))
-      );
+      setBooks((prev) => {
+        const next = prev.map((b) => (b.id === bookId ? { ...b, status: 'archived', updatedAt: new Date().toISOString() } : b));
+        broadcastTabSync('sahayak_books', next);
+        return next;
+      });
       const target = books.find((b) => b.id === bookId);
       if (target) {
         addAuditLog('Book Archived', target.title, 'Status changed to archived');
@@ -1935,9 +2143,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const nextFeatured = !target.isFeatured;
       try {
         await persistToServer(`/api/books/${bookId}`, 'PUT', { isFeatured: nextFeatured });
-        setBooks((prev) =>
-          prev.map((b) => (b.id === bookId ? { ...b, isFeatured: nextFeatured } : b))
-        );
+        setBooks((prev) => {
+          const next = prev.map((b) => (b.id === bookId ? { ...b, isFeatured: nextFeatured, updatedAt: new Date().toISOString() } : b));
+          broadcastTabSync('sahayak_books', next);
+          return next;
+        });
       } catch (err) {
         console.error('Failed to toggle feature book:', err);
         throw err;
@@ -1947,6 +2157,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const reorderBooks = (newBooks: Book[]) => {
     setBooks(newBooks);
+    broadcastTabSync('sahayak_books', newBooks);
     addAuditLog('Books Reordered', 'Books Catalog', 'Catalog display ordering updated');
   };
 
@@ -1957,7 +2168,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const updated = resData?.settings || newSettings;
       setSettings((prev) => {
         const next = { ...prev, ...updated };
-        try { localStorage.setItem('sahayak_settings', JSON.stringify(next)); } catch {}
+        broadcastTabSync('sahayak_settings', next);
         return next;
       });
 
@@ -1970,7 +2181,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               ? { ...a, avatar: portrait, updatedAt: new Date().toISOString() }
               : a
           );
-          try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+          broadcastTabSync('sahayak_authors', next);
           return next;
         });
         persistToServer('/api/authors/author-sandeep-sahni', 'PUT', { avatar: portrait }).catch(() => {});
@@ -1986,10 +2197,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateAuthor = async (updatedAuthor: Author): Promise<Author> => {
     try {
       const data = await persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
-      const savedAuthor = data?.author || updatedAuthor;
+      const savedAuthor = { ...updatedAuthor, ...(data?.author || {}), updatedAt: new Date().toISOString() };
       setAuthors((prev) => {
         const next = prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a));
-        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        broadcastTabSync('sahayak_authors', next);
         return next;
       });
 
@@ -2008,7 +2219,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               founderPortrait: savedAuthor.avatar,
             },
           };
-          try { localStorage.setItem('sahayak_settings', JSON.stringify(next)); } catch {}
+          broadcastTabSync('sahayak_settings', next);
           return next;
         });
         persistToServer('/api/settings', 'PUT', {
@@ -2029,13 +2240,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const addAuthor = async (authorData: Omit<Author, 'id'>): Promise<Author> => {
     const tempId = `author-${Date.now()}`;
-    const payload = { ...authorData, id: tempId };
+    const payload = { ...authorData, id: tempId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     try {
       const data = await persistToServer('/api/authors', 'POST', payload);
       const savedAuthor = data?.author || payload;
       setAuthors((prev) => {
         const next = [...prev, savedAuthor];
-        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        broadcastTabSync('sahayak_authors', next);
         return next;
       });
       addAuditLog('New Author Added', savedAuthor.name, 'Added author profile');
@@ -2052,7 +2263,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await persistToServer(`/api/authors/${authorId}`, 'DELETE', {});
       setAuthors((prev) => {
         const next = prev.filter((a) => a.id !== authorId);
-        try { localStorage.setItem('sahayak_authors', JSON.stringify(next)); } catch {}
+        broadcastTabSync('sahayak_authors', next);
         return next;
       });
       if (target) {
@@ -2067,6 +2278,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateCategory = async (updatedCat: Category) => {
     setCategories((prev) => {
       const updated = prev.map((c) => (c.id === updatedCat.id ? updatedCat : c));
+      broadcastTabSync('sahayak_categories', updated);
       persistToServer('/api/categories', 'PUT', { categories: updated }).catch(() => {});
       return updated;
     });
@@ -2080,7 +2292,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const data = await persistToServer('/api/blogs', 'POST', tempBlog);
       const savedBlog = data?.blog || tempBlog;
-      setBlogs((prev) => [savedBlog, ...prev]);
+      setBlogs((prev) => {
+        const next = [savedBlog, ...prev];
+        broadcastTabSync('sahayak_blogs', next);
+        return next;
+      });
       addAuditLog('Blog Created', savedBlog.title, `Added new article by ${savedBlog.author}`);
     } catch (err) {
       console.error('Failed to create blog:', err);
@@ -2092,7 +2308,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const data = await persistToServer(`/api/blogs/${updatedBlog.id}`, 'PUT', updatedBlog);
       const savedBlog = data?.blog || updatedBlog;
-      setBlogs((prev) => prev.map((bg) => (bg.id === updatedBlog.id ? savedBlog : bg)));
+      setBlogs((prev) => {
+        const next = prev.map((bg) => (bg.id === updatedBlog.id ? savedBlog : bg));
+        broadcastTabSync('sahayak_blogs', next);
+        return next;
+      });
       addAuditLog('Blog Updated', savedBlog.title, 'Updated essay content');
     } catch (err) {
       console.error('Failed to update blog:', err);
@@ -2104,7 +2324,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = blogs.find((b) => b.id === blogId);
     try {
       await persistToServer(`/api/blogs/${blogId}`, 'DELETE', {});
-      setBlogs((prev) => prev.filter((bg) => bg.id !== blogId));
+      setBlogs((prev) => {
+        const next = prev.filter((bg) => bg.id !== blogId);
+        broadcastTabSync('sahayak_blogs', next);
+        return next;
+      });
       if (target) {
         addAuditLog('Blog Deleted', target.title, `Removed article ID: ${blogId}`);
       }
@@ -2122,7 +2346,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     try {
       await persistToServer('/api/coupons', 'POST', newCoupon);
-      setCoupons((prev) => [newCoupon, ...prev]);
+      setCoupons((prev) => {
+        const next = [newCoupon, ...prev];
+        broadcastTabSync('sahayak_coupons', next);
+        return next;
+      });
       addAuditLog('Coupon Created', newCoupon.code, `Discount: ${newCoupon.discountValue}${newCoupon.discountType === 'percentage' ? '%' : '₹'}`);
     } catch (err) {
       console.error('Failed to create coupon:', err);
@@ -2132,13 +2360,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateCoupon = (updatedCoupon: Coupon) => {
     persistToServer(`/api/coupons/${updatedCoupon.id}`, 'PUT', updatedCoupon).catch(() => {});
-    setCoupons((prev) => prev.map((c) => (c.id === updatedCoupon.id ? updatedCoupon : c)));
+    setCoupons((prev) => {
+      const next = prev.map((c) => (c.id === updatedCoupon.id ? updatedCoupon : c));
+      broadcastTabSync('sahayak_coupons', next);
+      return next;
+    });
   };
 
   const deleteCoupon = async (couponId: string) => {
     try {
       await persistToServer(`/api/coupons/${couponId}`, 'DELETE', {});
-      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+      setCoupons((prev) => {
+        const next = prev.filter((c) => c.id !== couponId);
+        broadcastTabSync('sahayak_coupons', next);
+        return next;
+      });
     } catch (err) {
       console.error('Failed to delete coupon:', err);
       throw err;
@@ -2151,7 +2387,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const nextActive = !target.isActive;
     try {
       await persistToServer(`/api/coupons/${couponId}`, 'PUT', { isActive: nextActive });
-      setCoupons((prev) => prev.map((c) => (c.id === couponId ? { ...c, isActive: nextActive } : c)));
+      setCoupons((prev) => {
+        const next = prev.map((c) => (c.id === couponId ? { ...c, isActive: nextActive } : c));
+        broadcastTabSync('sahayak_coupons', next);
+        return next;
+      });
     } catch (err) {
       console.error('Failed to toggle coupon:', err);
       throw err;
@@ -2185,17 +2425,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...itemData,
     };
     setMediaItems((prev) => {
+      let next: MediaItem[];
       if (prev.some(m => m.id === newItem.id)) {
-        return prev.map(m => m.id === newItem.id ? newItem : m);
+        next = prev.map(m => m.id === newItem.id ? newItem : m);
+      } else {
+        next = [newItem, ...prev];
       }
-      return [newItem, ...prev];
+      broadcastTabSync('sahayak_media_items', next);
+      return next;
     });
     addAuditLog('Media Uploaded', newItem.name, `Folder: ${newItem.folder}`);
     return newItem;
   };
 
   const updateMediaItem = (item: MediaItem) => {
-    setMediaItems((prev) => prev.map((m) => (m.id === item.id ? item : m)));
+    setMediaItems((prev) => {
+      const next = prev.map((m) => (m.id === item.id ? item : m));
+      broadcastTabSync('sahayak_media_items', next);
+      return next;
+    });
     addAuditLog('Media Updated', item.name, 'Updated metadata or caption');
   };
 
@@ -2203,7 +2451,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const target = mediaItems.find((m) => m.id === id);
     try {
       await persistToServer(`/api/media/${id}`, 'DELETE', {});
-      setMediaItems((prev) => prev.filter((m) => m.id !== id));
+      setMediaItems((prev) => {
+        const next = prev.filter((m) => m.id !== id);
+        broadcastTabSync('sahayak_media_items', next);
+        return next;
+      });
       if (target) {
         addAuditLog('Media Deleted', target.name, `Removed media asset ID: ${id}`);
       }
@@ -2214,7 +2466,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const replaceMediaItem = (id: string, newUrl: string) => {
-    setMediaItems((prev) => prev.map((m) => (m.id === id ? { ...m, url: newUrl } : m)));
+    setMediaItems((prev) => {
+      const next = prev.map((m) => (m.id === id ? { ...m, url: newUrl } : m));
+      broadcastTabSync('sahayak_media_items', next);
+      return next;
+    });
     addAuditLog('Media File Replaced', id, `Updated file asset to: ${newUrl.slice(0, 40)}...`);
   };
 

@@ -497,7 +497,7 @@
       "email": "",
       "phone": "",
       "createdAt": "2026-10-24T10:58:31.867Z",
-      "updatedAt": "2026-10-26T05:10:41.244Z",
+      "updatedAt": "2026-10-26T06:04:20.796Z",
       "profileMediaId": "med-1792839830928-c9c2"
     },
     {
@@ -1506,8 +1506,8 @@
       "wishlist": [],
       "orderIds": [],
       "savedEbooks": [],
-      "lastLoginAt": "2026-10-26T05:10:15.184Z",
-      "updatedAt": "2026-10-26T05:10:15.184Z"
+      "lastLoginAt": "2026-10-26T06:03:48.675Z",
+      "updatedAt": "2026-10-26T06:03:48.675Z"
     },
     {
       "id": "usr-editor-1",
@@ -2011,6 +2011,13 @@
   ],
   "analyticsEvents": [
     {
+      "id": "ev-1792994628675-login-success",
+      "type": "login_completed",
+      "target": "admin@sahayakassociates.org",
+      "timestamp": "2026-10-26T06:03:48.675Z",
+      "device": "web"
+    },
+    {
       "id": "ev-1792991415184-login-success",
       "type": "login_completed",
       "target": "admin@sahayakassociates.org",
@@ -2081,5 +2088,5 @@
       "device": "desktop"
     }
   ],
-  "updatedAt": "2026-10-26T05:10:41.244Z"
+  "updatedAt": "2026-10-26T06:04:20.796Z"
 }
