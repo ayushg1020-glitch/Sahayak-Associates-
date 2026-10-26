@@ -965,7 +965,22 @@ async function startServer() {
         books = books.map((b: any) => b.authorId === id ? { ...b, authorName: req.body.name } : b);
       }
 
-      saveDatabase({ authors, books });
+      const savePayload: any = { authors, books };
+      if (
+        (id === 'author-sandeep-sahni' || updatedAuthor.slug === 'sandeep-sahni' || (updatedAuthor.name && updatedAuthor.name.toLowerCase().includes('sandeep'))) &&
+        updatedAuthor.avatar
+      ) {
+        const curSettings: any = db.settings || {};
+        savePayload.settings = {
+          ...curSettings,
+          siteImages: {
+            ...(curSettings.siteImages || {}),
+            founderPortrait: updatedAuthor.avatar,
+          },
+        };
+      }
+
+      saveDatabase(savePayload);
       res.json({ success: true, author: updatedAuthor });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
@@ -1011,7 +1026,17 @@ async function startServer() {
         });
       }
 
-      saveDatabase({ settings: newSettings, auditLogs });
+      const savePayload: any = { settings: newSettings, auditLogs };
+      if (req.body.siteImages?.founderPortrait) {
+        const portrait = req.body.siteImages.founderPortrait;
+        savePayload.authors = (db.authors || []).map((a: any) =>
+          a.id === 'author-sandeep-sahni' || a.slug === 'sandeep-sahni' || (a.name && a.name.toLowerCase().includes('sandeep'))
+            ? { ...a, avatar: portrait, updatedAt: new Date().toISOString() }
+            : a
+        );
+      }
+
+      saveDatabase(savePayload);
       res.json({ success: true, settings: newSettings });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
@@ -1149,69 +1174,6 @@ async function startServer() {
       const leads = db.leads.map((l: any) => (l.id === id ? { ...l, ...req.body } : l));
       saveDatabase({ leads });
       res.json({ success: true, lead: leads.find((l: any) => l.id === id) });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-  // Authors API
-  app.get('/api/authors', (req, res) => {
-    const db = getDatabase();
-    res.json({ success: true, authors: db.authors });
-  });
-
-  app.post('/api/authors', (req, res) => {
-    try {
-      const db = getDatabase();
-      const newAuthor = {
-        ...req.body,
-        id: req.body.id || `author-${Date.now()}`,
-      };
-      const authors = [newAuthor, ...db.authors];
-      saveDatabase({ authors });
-      res.status(201).json({ success: true, author: newAuthor });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-  app.put('/api/authors/:id', (req, res) => {
-    try {
-      const { id } = req.params;
-      const db = getDatabase();
-      const oldAuthor = db.authors.find((a: any) => a.id === id);
-      const authors = db.authors.map((a: any) =>
-        a.id === id ? { ...a, ...req.body } : a
-      );
-      
-      const auditLogs = [...(db.auditLogs || [])];
-      if (oldAuthor && req.body.avatar && oldAuthor.avatar !== req.body.avatar) {
-        auditLogs.unshift({
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          userName: req.body.updatedBy || 'Administrative Officer',
-          userRole: 'ADMIN',
-          action: 'Author Photo Changed',
-          resource: oldAuthor.name,
-          details: `Changed author portrait from ${oldAuthor.avatar.slice(0, 40)}... to ${req.body.avatar.slice(0, 40)}...`,
-        });
-      }
-
-      saveDatabase({ authors, auditLogs });
-      const updatedAuthor = authors.find((a: any) => a.id === id);
-      res.json({ success: true, author: updatedAuthor });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-  app.delete('/api/authors/:id', (req, res) => {
-    try {
-      const { id } = req.params;
-      const db = getDatabase();
-      const authors = db.authors.filter((a: any) => a.id !== id);
-      saveDatabase({ authors });
-      res.json({ success: true, message: 'Author deleted' });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }

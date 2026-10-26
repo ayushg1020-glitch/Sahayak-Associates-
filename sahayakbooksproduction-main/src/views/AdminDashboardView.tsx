@@ -223,7 +223,15 @@ export const AdminDashboardView: React.FC = () => {
     else if (raw.includes('/admin/coupons')) setActiveTab('coupons');
     else if (raw.includes('/admin/analytics')) setActiveTab('analytics');
     else if (raw.includes('/admin/activity') || raw.includes('/admin/audit')) setActiveTab('audit');
-    else if (raw === '/admin' || raw === '/admin/dashboard' || raw === '/admin/overview') setActiveTab('overview');
+    else if (
+      raw === '/admin' ||
+      raw === '/admin/dashboard' ||
+      raw === '/admin/overview' ||
+      raw === '/books/admin' ||
+      raw === '/books/admin/overview' ||
+      raw === '/books/admin/dashboard'
+    )
+      setActiveTab('overview');
   }, [currentPath]);
 
   // Login Form State (when locked)

@@ -4,14 +4,18 @@ import { BookCard } from '../../components/BookCard';
 import { Book } from '../../types';
 
 export const BooksLandingView: React.FC = () => {
-  const { books, categories, navigate, settings } = useStore();
+  const { books, categories, navigate, settings, authors = [] } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating'>('featured');
 
+  const sandeepAuthor = authors.find(
+    (a) => a.id === 'author-sandeep-sahni' || a.slug === 'sandeep-sahni' || a.name.toLowerCase().includes('sandeep')
+  );
+
   const founderPortraitUrl = settings?.siteImages?.founderPortraitHidden
     ? null
-    : (settings?.siteImages?.founderPortrait || '/sandeep_sahni.jpg');
+    : (sandeepAuthor?.avatar || settings?.siteImages?.founderPortrait || '/sandeep_sahni.jpg');
 
   // Filtered and sorted books
   const filteredBooks = useMemo(() => {
@@ -287,6 +291,60 @@ export const BooksLandingView: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Authors & Faculty Roster Showcase */}
+          {authors.length > 0 && (
+            <div className="mt-14 pt-10 border-t border-stone-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <div className="text-xs font-semibold text-[#C9A24E] uppercase tracking-widest">
+                    AUTHORS &amp; EDITORIAL FACULTY
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-[#071526] mt-1">
+                    Meet Our Published Authors
+                  </h3>
+                </div>
+                <button
+                  onClick={() => navigate('/authors')}
+                  className="text-xs font-semibold text-[#071526] hover:text-[#C9A24E] transition-colors flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                >
+                  <span>View All Faculty Profiles</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {authors.map((auth) => (
+                  <div
+                    key={auth.id}
+                    onClick={() => navigate(`/authors/${auth.slug}`)}
+                    className="p-5 rounded-2xl bg-white border border-stone-200/80 hover:border-[#C9A24E] shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                  >
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#C9A24E] shrink-0 bg-stone-100 shadow-sm">
+                      <img
+                        src={auth.avatar}
+                        alt={auth.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/authors/default-author.png';
+                        }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-serif font-bold text-base text-[#071526] group-hover:text-[#C9A24E] transition-colors truncate">
+                        {auth.name}
+                      </h4>
+                      <p className="text-xs text-stone-500 line-clamp-1 mt-0.5">{auth.title}</p>
+                      <span className="text-[11px] font-semibold text-[#C9A24E] mt-1 inline-block">
+                        {auth.publishedBookCount || 1} Published Book{(auth.publishedBookCount || 1) === 1 ? '' : 's'} →
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

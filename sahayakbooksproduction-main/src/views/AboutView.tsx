@@ -3,15 +3,19 @@ import { useStore } from '../context/StoreContext';
 import { Award, ShieldCheck, Users, Target, Compass, ArrowRight, BookOpen } from 'lucide-react';
 
 export const AboutView: React.FC = () => {
-  const { navigate, settings } = useStore();
+  const { navigate, settings, authors = [] } = useStore();
 
   const officeEntranceUrl = settings?.siteImages?.officeEntranceHidden
     ? null
     : (settings?.siteImages?.officeEntrance || '/assets/corporate/office_entrance.jpg');
 
+  const sandeepAuthor = authors.find(
+    (a) => a.id === 'author-sandeep-sahni' || a.slug === 'sandeep-sahni' || a.name.toLowerCase().includes('sandeep')
+  );
+
   const founderPortraitUrl = settings?.siteImages?.founderPortraitHidden
     ? null
-    : (settings?.siteImages?.founderPortrait || '/sandeep_sahni.jpg');
+    : (sandeepAuthor?.avatar || settings?.siteImages?.founderPortrait || '/sandeep_sahni.jpg');
 
   return (
     <div id="about-page" className="w-full bg-[#FAF7F2] text-[#11243B]">
@@ -151,6 +155,9 @@ export const AboutView: React.FC = () => {
                     src={founderPortraitUrl}
                     alt="Sandeep Sahni — Founder & MD"
                     className="w-full h-auto object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/sandeep_sahni.jpg';
+                    }}
                   />
                 </div>
               </div>

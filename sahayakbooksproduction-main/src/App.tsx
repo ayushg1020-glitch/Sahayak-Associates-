@@ -64,6 +64,8 @@ const MainRouter: React.FC = () => {
       document.title = 'Company Milestones & Practice Achievements | Sahayak Associates';
     } else if (currentPath === '/careers') {
       document.title = 'Careers & Open Opportunities | Sahayak Associates';
+    } else if (currentPath.startsWith('/books/admin') || currentPath.startsWith('/admin')) {
+      document.title = 'Admin Master Control | Sahayak Associates';
     } else if (currentPath.startsWith('/books/')) {
       document.title = `Book Dossier | Sahayak Books — Powered by Sahayak Associates`;
     } else if (currentPath === '/books') {
@@ -76,8 +78,6 @@ const MainRouter: React.FC = () => {
       document.title = 'Track Consignment | Sahayak Books';
     } else if (currentPath === '/dashboard') {
       document.title = 'Reader Dashboard | Sahayak Books';
-    } else if (currentPath.startsWith('/admin')) {
-      document.title = 'Admin Master Control | Sahayak Associates';
     } else if (currentPath === '/authors') {
       document.title = 'Authors & Jurists Faculty | Sahayak Associates';
     } else if (currentPath === '/blogs') {
@@ -134,6 +134,11 @@ const MainRouter: React.FC = () => {
     }
     if (cleanPath === '/books/catalog') {
       return <BooksCatalogView />;
+    }
+
+    // Books Admin Alias & Subpaths
+    if (cleanPath === '/books/admin' || cleanPath.startsWith('/books/admin/')) {
+      return <AdminDashboardView />;
     }
 
     // 4. Book Detail: /books/:slug

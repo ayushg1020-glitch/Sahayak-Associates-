@@ -3,7 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { BookCard } from '../../components/BookCard';
 
 export const CorporateHomeView: React.FC = () => {
-  const { navigate, books = [], settings } = useStore();
+  const { navigate, books = [], settings, authors = [] } = useStore();
 
   // Dynamic Site Images configured from Admin Panel
   const heroBackgroundUrl = settings?.siteImages?.heroBackgroundHidden
@@ -1080,6 +1080,33 @@ export const CorporateHomeView: React.FC = () => {
                 <span>→</span>
               </button>
             </div>
+
+            {/* Author Avatars Bar */}
+            {authors.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Featured Authors:</span>
+                {authors.map((auth) => (
+                  <button
+                    key={auth.id}
+                    onClick={() => navigate(`/authors/${auth.slug}`)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-stone-200/90 hover:border-[#C9A24E] shadow-sm transition-all group cursor-pointer"
+                  >
+                    <img
+                      src={auth.avatar}
+                      alt={auth.name}
+                      className="w-6 h-6 rounded-full object-cover border border-[#C9A24E]"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/authors/default-author.png';
+                      }}
+                    />
+                    <span className="text-xs font-bold text-[#071526] group-hover:text-[#C9A24E] transition-colors">
+                      {auth.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Book Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">

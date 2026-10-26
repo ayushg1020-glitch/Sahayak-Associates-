@@ -1876,6 +1876,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const resData = await persistToServer('/api/settings', 'PUT', newSettings);
       const updated = resData?.settings || newSettings;
       setSettings((prev) => ({ ...prev, ...updated }));
+
+      // If founderPortrait was updated in settings, sync to Sandeep Sahni author avatar
+      if (newSettings.siteImages?.founderPortrait) {
+        const portrait = newSettings.siteImages.founderPortrait;
+        setAuthors((prev) =>
+          prev.map((a) =>
+            a.id === 'author-sandeep-sahni' || a.slug === 'sandeep-sahni' || a.name.toLowerCase().includes('sandeep')
+              ? { ...a, avatar: portrait }
+              : a
+          )
+        );
+        persistToServer('/api/authors/author-sandeep-sahni', 'PUT', { avatar: portrait }).catch(() => {});
+      }
+
       addAuditLog('Website Settings Updated', 'Global Settings', 'Updated settings in database');
     } catch (err) {
       console.error('Failed to update settings:', err);
@@ -1888,6 +1902,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const data = await persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
       const savedAuthor = data?.author || updatedAuthor;
       setAuthors((prev) => prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a)));
+
+      // Auto-sync Sandeep Sahni avatar to siteImages founderPortrait
+      if (
+        (savedAuthor.id === 'author-sandeep-sahni' ||
+          savedAuthor.slug === 'sandeep-sahni' ||
+          savedAuthor.name.toLowerCase().includes('sandeep')) &&
+        savedAuthor.avatar
+      ) {
+        setSettings((prev) => ({
+          ...prev,
+          siteImages: {
+            ...(prev.siteImages || {}),
+            founderPortrait: savedAuthor.avatar,
+          },
+        }));
+        persistToServer('/api/settings', 'PUT', {
+          siteImages: {
+            ...(settings?.siteImages || {}),
+            founderPortrait: savedAuthor.avatar,
+          },
+        }).catch(() => {});
+      }
+
       addAuditLog('Author Profile Updated', savedAuthor.name, 'Updated author profile');
       return savedAuthor;
     } catch (err: any) {

@@ -79,7 +79,21 @@ export const BookDetailView: React.FC<BookDetailViewProps> = ({ slug }) => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   const bookReviews = reviews.filter((r) => r.bookId === book.id || r.bookTitle === book.title);
-  const author = authors.find((a) => a.id === book.authorId || a.name === book.authorName);
+  const matchedAuthors = React.useMemo(() => {
+    const list = authors.filter(
+      (a) =>
+        a.id === book.authorId ||
+        (book.authorName && (
+          book.authorName.toLowerCase().includes(a.name.toLowerCase()) ||
+          a.name.toLowerCase().includes(book.authorName.toLowerCase())
+        ))
+    );
+    if (list.length > 0) return list;
+    const fallback = authors.find((a) => a.id === book.authorId || a.name === book.authorName);
+    return fallback ? [fallback] : (authors.length > 0 ? [authors[0]] : []);
+  }, [authors, book.authorId, book.authorName]);
+
+  const author = matchedAuthors[0] || authors[0];
   const relatedBooks = books.filter((b) => b.id !== book.id && (b.category === book.category || b.authorId === book.authorId));
 
   // Dynamic price adjustment based on format
@@ -538,30 +552,45 @@ export const BookDetailView: React.FC<BookDetailViewProps> = ({ slug }) => {
       </section>
 
       {/* Author Biography Dossier */}
-      {author && (
-        <section className="bg-gradient-to-r from-[#0B192C] to-[#0E2238] text-[#FAF7F2] rounded-3xl p-6 sm:p-10 border border-[#C5A059]/30 shadow-xl flex flex-col md:flex-row items-center gap-8">
-          <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-2 border-[#C5A059] shadow-lg shrink-0">
-            <img src={author.avatar} alt={author.name} className="w-full h-full object-cover" />
-          </div>
-          <div className="space-y-3 flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C5A059] uppercase tracking-wider">
-              <Award className="w-4 h-4" />
-              <span>About the Author</span>
-            </div>
-            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white">{author.name}</h3>
-            <p className="text-xs text-[#C5A059] font-medium">{author.title}</p>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
-              {author.bio}
-            </p>
-            <button
-              onClick={() => navigate(`/authors/${author.slug}`)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#C5A059] hover:underline pt-2"
+      {matchedAuthors.length > 0 && (
+        <div className="space-y-6">
+          {matchedAuthors.map((auth) => (
+            <section
+              key={auth.id}
+              className="bg-gradient-to-r from-[#0B192C] to-[#0E2238] text-[#FAF7F2] rounded-3xl p-6 sm:p-10 border border-[#C5A059]/30 shadow-xl flex flex-col md:flex-row items-center gap-8"
             >
-              <span>Explore all {author.publishedBookCount} works by {author.name}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </section>
+              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-2 border-[#C5A059] shadow-lg shrink-0 bg-stone-900">
+                <img
+                  src={auth.avatar}
+                  alt={auth.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/authors/default-author.png';
+                  }}
+                />
+              </div>
+              <div className="space-y-3 flex-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C5A059] uppercase tracking-wider">
+                  <Award className="w-4 h-4" />
+                  <span>About the Author</span>
+                </div>
+                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white">{auth.name}</h3>
+                <p className="text-xs text-[#C5A059] font-medium">{auth.title}</p>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-3xl">
+                  {auth.bio}
+                </p>
+                <button
+                  onClick={() => navigate(`/authors/${auth.slug}`)}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#C5A059] hover:underline pt-2 cursor-pointer"
+                >
+                  <span>Explore all {auth.publishedBookCount || 1} works by {auth.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </section>
+          ))}
+        </div>
       )}
 
       {/* Customer Reviews & Submit Review Form */}

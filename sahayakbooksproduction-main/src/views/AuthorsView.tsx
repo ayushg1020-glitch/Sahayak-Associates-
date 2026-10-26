@@ -54,6 +54,10 @@ export const AuthorsView: React.FC = () => {
                     src={author.avatar}
                     alt={author.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/authors/default-author.png';
+                    }}
                   />
                 </div>
 
@@ -115,7 +119,15 @@ export const AuthorDetailView: React.FC<{ slug: string }> = ({ slug }) => {
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
           <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border-4 border-[#C5A059] shadow-2xl shrink-0">
-            <img src={author.avatar} alt={author.name} className="w-full h-full object-cover" />
+            <img
+              src={author.avatar}
+              alt={author.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/authors/default-author.png';
+              }}
+            />
           </div>
 
           <div className="space-y-4 flex-1 text-center md:text-left">

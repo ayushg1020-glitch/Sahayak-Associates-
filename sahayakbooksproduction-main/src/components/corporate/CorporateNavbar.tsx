@@ -206,6 +206,16 @@ export const CorporateNavbar: React.FC = () => {
                   <span className="text-[10px] text-stone-400">Articles</span>
                 </button>
                 <button
+                  onClick={() => handleNav('/authors')}
+                  className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-[#F5F2EA] hover:text-[#C9A24E] transition-colors flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>✍️</span>
+                    <span>Authors & Faculty</span>
+                  </span>
+                  <span className="text-[10px] text-stone-400">Roster</span>
+                </button>
+                <button
                   onClick={() => handleNav('/gurukul/brochures')}
                   className="w-full text-left px-4 py-2.5 text-xs text-stone-700 hover:bg-[#F5F2EA] hover:text-[#C9A24E] transition-colors flex items-center justify-between"
                 >
